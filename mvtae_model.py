@@ -10,7 +10,7 @@ from datetime import datetime
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-from torch import nn, from_numpy
+from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -36,7 +36,7 @@ class MVTAEModel(nn.Module):
         self.best_loss = 1e10
         self.best_epoch = None
         if model_save_path:
-            self.tb_writer = SummaryWriter(log_dir=f'./tensorboard')
+            self.tb_writer = SummaryWriter(log_dir='./tensorboard')
         self.device = 'cuda'
         print('Using', self.device)
         if self.device == 'cuda':
@@ -107,8 +107,8 @@ class MVTAEModel(nn.Module):
             if loss < self.best_loss:
                 self.best_loss = loss
                 self.best_epoch = i
-                torch.save(self.state_dict(), os.path.join(self.model_save_path, f'{self.model_name}_best.pth'))
+                torch.save(self.state_dict(), os.path.join(self.model_save_path, '{self.model_name}_best.pth'))
             self.tb_writer.add_scalar('loss', loss, i)
             with open('loss.log', 'a') as flog:
-                flog.write(f'{datetime.utcnow()},{i},{loss}\n')
-        print(f'Best epoch: {self.best_epoch} | loss {self.best_loss}')
+                flog.write('{datetime.utcnow()},{i},{loss}\n')
+        print('Best epoch: {self.best_epoch} | loss {self.best_loss}')
