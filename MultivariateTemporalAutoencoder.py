@@ -21,6 +21,9 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torch import nn, from_numpy
 
+print(torch.__version__)
+print(torch.cuda.is_available())
+
 import matplotlib.pyplot as plt
 
 #import warnings
@@ -117,7 +120,7 @@ while idx_rear + 1 < sina_1_data_train.shape[0]:
         tr_data_windows[i][j] = _data_window              #保存归一化后的x
         
     # create y along same normalized scale
-    _, hi, lo = norm(data[feature_y][idx_front:idx_rear]) #此处的norm取最大最小
+    _, hi, lo = norm(data[feature_y][idx_front:idx_rear]) #此处使用norm函数返回的最大最小
     xxx = norm(data[feature_y][idx_rear], hi, lo)         #xxx是tuple（list列表和tuple元组的“技术差异”是，list列表是可变的，而tuple元组是不可变的。这是在 Python 语言中二者唯一的差别。(所以tuple大多数情况比list快)）
     _y = xxx[0]                                           #归一化后的y
     tr_data_windows_y[i] = _y                             #保存归一化后的y
@@ -130,7 +133,7 @@ pbar.close()
 
 # reshape input into [samples, timesteps, features]
 tr_data_size = tr_data_windows.shape[0]
-tr_input_seq = tr_data_windows.swapaxes(1,2)
+tr_input_seq = tr_data_windows.swapaxes(1,2)              #交换后面2个维度
 
 
 # In[7]:
@@ -150,14 +153,21 @@ plt.title('Data Windows sine_2')
 plt.subplot(2,1,2)
 # test prediction Y with visual
 p = [None for x in range(9)]
-p.append(norm(data['combined'][:window_size])[0].iloc[-1])
-p.append(tr_data_windows_y[0])
-plt.plot(list(norm(data['combined'][:window_size])[0][-10:]), label='X')
+xxxx = data['combined'][:window_size]             #取得第一个窗口的所有combined
+dddd = norm(xxxx)[0]                              #归一化所有combined
+p.append(dddd.iloc[-1])                           #最后一个归一化的combined加入p（data中索引是window_size-1）
+p.append(tr_data_windows_y[0])                    #归一化的y加入p（data中索引是window_size）
+gggg = list(dddd[-10:])                           #取第一个窗口的最后10个combined（combined和y表示同一个变量）
+plt.plot(gggg, label='X')
 plt.plot(p, label='Y')
 plt.legend()
 plt.title('X, Y Window')
 plt.show()
 
+#print("x = ")
+#print(gggg)
+#print("y = ")
+#print(p)
 
 # # Model Run
 
@@ -215,11 +225,14 @@ from mvtae_model import MVTAEModel
 
 hidden_vector_size = 64
 hidden_alpha_size = 16
-batch_size = 8
+batch_size = 1024
+
+data_x = from_numpy(tr_input_seq).float()              #``self.float()`` is equivalent to ``self.to(torch.float32)``
+data_y = from_numpy(tr_data_windows_y).float()
 
 dataset = Data(
-    x=from_numpy(tr_input_seq).float(),
-    y=from_numpy(tr_data_windows_y).float()
+    x=data_x,
+    y=data_y
 )
 
 data_loader = DataLoader(
@@ -246,33 +259,28 @@ print('Data Size:\t\t', len(dataset))
 print('Batches per Epoch:\t', int(len(dataset)/tr_input_seq.shape[0]))
 
 
-# In[11]:
 
 
 tensorboard_folder = './tensorboard'
-get_ipython().run_line_magic('tensorboard', '--port 6006 --logdir $tensorboard_folder')
+#get_ipython().run_line_magic('tensorboard', '--port 6006 --logdir $tensorboard_folder')
 
 
-# In[12]:
 
 
-model.fit(data_loader, epochs=250, start_epoch=0, verbose=True)
+model.fit(data_loader, epochs=10, start_epoch=0, verbose=True)
 
 
-# In[13]:
+
 
 
 model.load_state_dict(torch.load('mvtae_model_best.pth'))
 
 
-# # Hidden State Vector Visualisation
-
-# In[14]:
+# # Hidden State Vector Visualisation           #显示部分输入数据的hidden state vector
 
 
 model.eval()
-#figsize(15,6)
-zoom_lim = 400 # limit num of hidden vector examples to show
+zoom_lim = 10 # limit num of hidden vector examples to show
 hidden_state_vector, decoder_output, alpha_output = model(from_numpy(tr_input_seq[:zoom_lim]).float())
 
 # visualise hidden vector
@@ -281,14 +289,11 @@ for i in range(tr_input_seq[:zoom_lim].shape[0]):
 plt.show()
 
 
-# # Decoder Target Recreation
-
-# In[15]:
+# # Decoder Target Recreation                   #重构一个输入，然后与原始输入同时显示对比
 
 
 model.eval()
-#figsize(15,10)
-idx = 0
+idx = 5                                         #进行重构的输入的索引
 y_in = tr_input_seq[idx].reshape(1, window_size, tr_input_seq.shape[2])
 hidden_state_vector, decoder_output, alpha_output = model(from_numpy(y_in).float())
 
@@ -312,13 +317,10 @@ plt.legend()
 plt.show()
 
 
-# # Alpha Target Branch Prediction
-
-# In[16]:
+# # Alpha Target Branch Prediction                 #使用tr_input_seq进行预测，与结果tr_data_windows_y进行比较。此处没有使用test数据，感觉不太好.
 
 
 model.eval()
-#figsize(15,6)
 _,_ , alpha_output = model(from_numpy(tr_input_seq).float())
 alpha_output = alpha_output.flatten().detach().cpu().numpy()
 
@@ -332,10 +334,15 @@ plt.plot(alpha_output, label='Prediction')
 plt.legend()
 plt.show()
 
+##进行纯正的test，看看具体的情况
 
+
+
+
+
+################################################################
 # # Full Dataset Absolute Construction-Prediction Run
 
-# In[17]:
 
 
 model.eval()
@@ -358,18 +365,18 @@ for i in tqdm(range(data.shape[0])):
     true.append(data[feature_y][i])
     pred.append(abs_pred)
 
-#figsize(15,10)
-plt.subplot(2,1,1)
+plt.subplot(2,1,1)                                 #显示所有数据的原始数据和预测结果
 plt.plot(true, label='Target')
 plt.plot(pred, label='Prediction')
 plt.title('Full Predictions De-Normalized')
 plt.legend()
 
-plt.subplot(2,1,2)
+plt.subplot(2,1,2)                                 #显示前100个数据的原始数据和预测结果
 zoom = 100
 plt.plot(true[:zoom], label='Target')
 plt.plot(pred[:zoom], label='Prediction')
 plt.title('Full Predictions De-Normalized : Zoomed In')
 plt.legend()
 plt.show()
+
 

@@ -1,0 +1,40 @@
+
+x.to(self.device)   
+
+这在tensorboard中表现为Operation aten::to, x是输入，类型为Operation IO Node,   self.device也是输入，类型是Operation: prim::Constant.还有别的
+prim::Constant类型输入，不清楚从哪儿来的。由于x.to是built-in函数，在实现的时候，大概率还有别的默认参数，所以在tensorboard中看起来输入特别多。
+
+
+
+本模型类似于VAE，encoder输出的Hidden State Vector包含的信息有限，但是由于后面的重构过程，导致HSV必须高效的把最有效的信息记录下来（类似于信号分解的傅里叶变化），
+同时把噪音过滤掉，因为噪音是导致decoder的loss不稳定的最主要的因素（噪音是随机的，无法捕捉模式，无法预测，原始输入数据如果完全没有噪音，模型把数据的内在模式全部捕捉到，
+数据就是完全可预测的，loss应该为0）
+
+decoder后面的线性变化，为了如下目的
+This fully connected layer enables the backpropagation training process to capture higher dimensionality linear functions within the data and
+hence allows the LSTM decoder layer to focus on capturing the non-linear sequential functions within the data.
+捕捉数据内的线性关系，让LSTM专心捕捉非线性关系(术业有专攻，good idea)
+
+
+如果只有alpha branch，在train阶段，可能把noise也拟合进去，导致在虽然train的很好，但是test阶段的效果不好。新加入的decoder encoder branch，
+通过reconstruction，将noise过滤掉，并将原始数据表示为hidden state vector，以供alpha branch，这样有助于train和test
+
+
+为什么不先train decoder，train结束再train alpha，而是放在一起。大概是为了方便，应该问题不大
+
+
+
+
+clip_grad_norm_ 需要的参数：
+
+parameters：计算了梯度之后的权重参数
+max_norm：认为设定的阈值
+norm_type：指定的范数
+函数执行的操作
+1. 对所有需要进行梯度计算的参数，收集所有参数的梯度的指定范数（通过参数norm_type进行设置，1表示绝对值，2表示二阶范数也就是平方和开根号）
+
+2. 计算所有参数的梯度范数总和（一个标量）和设定的max_norm的比值。如果max_norm/total_norm>1, 所有参数的梯度不变，可以直接反向传播。
+如果比值小于1，说明参数梯度需要被缩减，缩减比率为rate= max_norm/total_norm,所有反向传播的梯度变为原本的rate倍。
+
+这样的意义就是避免权重梯度爆炸导致模型训练困难,对于大梯度的缩小，小梯度的不变。
+但是存在的问题是，参数原本的分布很不均匀，有的梯度大有的梯度小；而梯度的总体范数值对于阈值，那么所有的梯度都会被同比例缩小。
