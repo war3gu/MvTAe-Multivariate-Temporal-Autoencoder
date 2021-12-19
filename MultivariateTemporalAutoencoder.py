@@ -21,6 +21,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torch import nn, from_numpy
 
+from mvtae_model import MVTAEModel
+
 print(torch.__version__)
 print(torch.cuda.is_available())
 
@@ -221,7 +223,7 @@ class Data(Dataset):
 # In[10]:
 
 
-from mvtae_model import MVTAEModel
+
 
 hidden_vector_size = 64
 hidden_alpha_size = 16
