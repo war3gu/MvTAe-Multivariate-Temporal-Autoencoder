@@ -24,10 +24,12 @@ import matplotlib.pyplot as plt
 
 import argparse
 
+import os
+
 print(torch.__version__)
 print(torch.cuda.is_available())
 
-def raw_data_schematic():
+def raw_data_schematic(data):
     idx_val_split = int(0.8 * data.shape[0])
     plt.plot(data['combined'], label='combined signal')
     plt.plot(data['sine_1'], label='sine_1 signal')
@@ -46,7 +48,7 @@ def raw_data_schematic():
     plt.legend()
     plt.show()
 
-def norm_data_schematic():
+def norm_data_schematic(data, tr_input_seq, tr_data_windows_y):
     plt.subplot(2,2,1)
     for i in range(30):
         plt.plot(tr_input_seq[i,:,0])
@@ -72,7 +74,7 @@ def norm_data_schematic():
 
 # # Hidden State Vector Visualisation           #显示部分输入数据的hidden state vector
 
-def hidden_state_verctor_visual():
+def hidden_state_verctor_visual(model, tr_input_seq):
     model.eval()
     zoom_lim = 10 # limit num of hidden vector examples to show
     hidden_state_vector, decoder_output, alpha_output = model(from_numpy(tr_input_seq[:zoom_lim]).float())
@@ -88,7 +90,7 @@ def hidden_state_verctor_visual():
 
 # # Decoder Target Recreation                   #重构一个输入，然后与原始输入同时显示对比
 
-def decoder_scores():
+def decoder_visual(model, tr_input_seq):
     model.eval()
     idx = 5                                         #进行重构的输入的索引
     y_in = tr_input_seq[idx].reshape(1, window_size, tr_input_seq.shape[2])
@@ -114,14 +116,10 @@ def decoder_scores():
 
 # # Alpha Target Branch Prediction                 #使用tr_input_seq进行预测，与结果tr_data_windows_y进行比较。此处没有使用test数据，感觉不太好.
 
-def alpha_train_scores():
+def alpha_train_visual(model, tr_input_seq, tr_data_windows_y):
     model.eval()
     _,_ , alpha_output = model(from_numpy(tr_input_seq).float())
     alpha_output = alpha_output.flatten().detach().cpu().numpy()
-    print('###  Train  Error/Accuracy Metrics ###')
-    print('MSE:\t', mean_squared_error(tr_data_windows_y, alpha_output))
-    print('MAE:\t', mean_absolute_error(tr_data_windows_y, alpha_output))
-    print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
     plt.plot(tr_data_windows_y, label='Target')
     plt.plot(alpha_output, label='Prediction')
     plt.legend()
@@ -129,33 +127,45 @@ def alpha_train_scores():
 
 
 ##进行纯正的test，看看具体的情况
-def alpha_test_scores():
+def alpha_test_visual(model, test_arr_x, test_arr_y):
     model.eval()
     _,_ , alpha_output = model(from_numpy(test_arr_x).float())
     alpha_output = alpha_output.flatten().detach().cpu().numpy()
-    print('###  Test  Error/Accuracy Metrics ###')
-    print('MSE:\t', mean_squared_error(test_arr_y, alpha_output))
-    print('MAE:\t', mean_absolute_error(test_arr_y, alpha_output))
-    print('R²:\t', r2_score(test_arr_y, alpha_output))
     plt.plot(test_arr_y, label='Target')
     plt.plot(alpha_output, label='Prediction')
     plt.legend()
     plt.show()
 
+def alpha_train_scores(model, tr_input_seq, tr_data_windows_y):
+    model.eval()
+    _,_ , alpha_output = model(from_numpy(tr_input_seq).float())
+    alpha_output = alpha_output.flatten().detach().cpu().numpy()
+    print('###  Train  Error/Accuracy Metrics ###')
+    print('MSE:\t', mean_squared_error(tr_data_windows_y, alpha_output))
+    print('MAE:\t', mean_absolute_error(tr_data_windows_y, alpha_output))
+    print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
 
-if __name__ == '__main__':
-    print("main")
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--pycharm', '--pycharm', required=False, default=0, help='use pycharm?')
-    opt = vars(parser.parse_args())
+def alpha_test_scores(model, test_arr_x, test_arr_y):
+    model.eval()
+    _,_ , alpha_output = model(from_numpy(test_arr_x).float())
+    alpha_output = alpha_output.flatten().detach().cpu().numpy()
+    print('###  Test  Error/Accuracy Metrics ###')
+    mse = mean_squared_error(test_arr_y, alpha_output)
+    mae = mean_absolute_error(test_arr_y, alpha_output)
+    r2  = r2_score(test_arr_y, alpha_output)
+    print('MSE:\t', mse)
+    print('MAE:\t', mae)
+    print('R²:\t',  r2)
+    return mse, mae, r2
 
-    charm_use = opt["pycharm"]
 
+
+def run_super_params():
     # Load Data
-    data = pd.read_csv('data.csv', header=0)
+    data = pd.read_csv('./data/data.csv', header=0)
 
-    if charm_use:
-        raw_data_schematic()
+    if pycharm_use:
+        raw_data_schematic(data)
 
     raw_data_size = data.shape[0]
     index_window_start = 0
@@ -192,8 +202,8 @@ if __name__ == '__main__':
     tr_data_windows_y = train_arr_y
     #tr_data_size = tr_input_seq.shape[0]                   #3899
 
-    if charm_use:
-        norm_data_schematic()
+    if pycharm_use:
+        norm_data_schematic(data, tr_input_seq, tr_data_windows_y)
 
     data_x = from_numpy(tr_input_seq).float()              #``self.float()`` is equivalent to ``self.to(torch.float32)``
     data_y = from_numpy(tr_data_windows_y).float()
@@ -225,16 +235,59 @@ if __name__ == '__main__':
     print('Data Size:\t\t', len(dataset))
     print('Batches per Epoch:\t', int(len(dataset)/tr_input_seq.shape[0]))
 
-    model.fit(data_loader, epochs=2000, start_epoch=0, verbose=True)
+    model.fit(data_loader, epochs=epochs_size, start_epoch=0, verbose=True)
 
     model.load_state_dict(torch.load('mvtae_model_best.pth'))
 
-    if charm_use:
-        hidden_state_verctor_visual()
-        decoder_scores()
+    if pycharm_use:
+        hidden_state_verctor_visual(model, tr_input_seq)
+        decoder_visual(model, tr_input_seq)
+        alpha_train_visual(model, tr_input_seq, tr_data_windows_y)
+        alpha_test_visual(model, test_arr_x, test_arr_y)
 
-    alpha_train_scores()
-    alpha_test_scores()
+    alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
+    mse, mae, r2 = alpha_test_scores(model, test_arr_x, test_arr_y)
+    return mse, mae, r2
+
+
+if __name__ == '__main__':
+    print("main")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pycharm', '--pycharm', required=False, default=0, help='use pycharm?')
+    opt = vars(parser.parse_args())
+
+    pycharm_use = opt["pycharm"]
+
+    #载入超参数配置文件，跑出来的结果写入文件
+
+    super_params = pd.read_csv('super_params.csv', header=0)
+
+    for _, row in super_params.iterrows():
+        index = int(row['index'])
+        if index < index_start_super_params:
+            continue
+        window_size        = int(row['window_size'])
+        hidden_vector_size = int(row['hidden_vector_size'])
+        hidden_alpha_size  = int(row['hidden_alpha_size'])
+        batch_size         = int(row['batch_size'])
+        weight_decoder     = int(row['weight_decoder'])
+
+        mse, mae, r2 = run_super_params()     #把结果写入文件
+
+        if not os.path.exists("super_params_scores.csv"):
+            df = pd.DataFrame(columns=['index_sp', 'mse', 'mae', 'r2'])
+            df.to_csv("super_params_scores.csv", index = False)
+
+        superParams = {}
+        superParams['index_sp'] = index
+        superParams['mse']      = mse
+        superParams['mae']      = mae
+        superParams['r2']       = r2
+        dataframe = pd.read_csv("super_params_scores.csv")
+        dataframe = dataframe.append([superParams], ignore_index = True)
+        dataframe.to_csv("super_params_scores.csv", index = False)
+
+
 
 
 
