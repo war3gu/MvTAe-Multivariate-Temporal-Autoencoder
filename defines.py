@@ -22,6 +22,8 @@ hidden_vector_size = 64
 hidden_alpha_size = 16
 batch_size = 1024
 
+weight_decoder = 10
+
 
 def norm(data, hi=None, lo=None):          #hi,lo是外部输入的最大最小值，更高优先级（在Python中，None、空列表[]、空字典{}、空元组()、0等一系列代表空和无的对象会被转换成False）
     hi = np.max(data) if not hi else hi    #hi如果等于False，就从data中找最大值（默认是None，就等于False）。否则执行hi=hi
@@ -34,6 +36,20 @@ def norm(data, hi=None, lo=None):          #hi,lo是外部输入的最大最小�
 def reverse_norm(y, hi, lo):
     x = y*(hi-lo)+lo
     return x
+
+def zscore(data, mu=None, sigma=None):
+    # z = (x-μ)/σ
+    mu = np.mean(data) if not mu else mu
+    sigma = np.std(data) if not sigma else sigma
+    if sigma == 0:
+        return 0, mu, 0
+    return (data-mu)/sigma, mu, sigma
+
+def reverse_zscore(z, mu, sigma):
+    # x = (zσ)+μ
+    x = (z*sigma)+mu
+    return x
+
 
 
 
