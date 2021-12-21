@@ -145,7 +145,7 @@ def alpha_train_scores(model, tr_input_seq, tr_data_windows_y):
     print('MAE:\t', mean_absolute_error(tr_data_windows_y, alpha_output))
     print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
 
-def alpha_test_scores(model, test_arr_x, test_arr_y):
+def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
     model.eval()
     _,_ , alpha_output = model(from_numpy(test_arr_x).float())
     alpha_output = alpha_output.flatten().detach().cpu().numpy()
@@ -156,7 +156,21 @@ def alpha_test_scores(model, test_arr_x, test_arr_y):
     print('MSE:\t', mse)
     print('MAE:\t', mae)
     print('R²:\t',  r2)
-    return mse, mae, r2
+
+
+    #test_arr_x, test_arr_y, test_arr_window 维度应该是一样的
+    #如果原始数据可能为0，就不能除以。股价应该没这个问题，除以后，看预测值的波动范围,与MSE，mae，r2比较，这些都是归一化后数据的指标
+    '''
+    for i in range(test_arr_window.shape[0]):
+        oneWin     = test_arr_window[i]
+        raw_y, raw_pre_y  = oneWin.get_raw_data(alpha_output[i])
+        norm_pre_y = test_arr_y[i]
+        deviationPercent = alpha_output/test_arr_y - 1   #test_arr_y
+        dev_per_mean = np.mean(deviationPercent)
+        dev_per_std = np.std(deviationPercent)
+    '''
+
+    return mse, mae, r2,
 
 
 
@@ -198,6 +212,8 @@ def run_super_params():
     train_arr_y = np.array(list_y[:count_train])
     test_arr_x = np.array(list_x[count_train:])
     test_arr_y = np.array(list_y[count_train:])
+    test_arr_window = np.array(list_window[count_train:])   #还原预测结果使用
+
     tr_input_seq = train_arr_x
     tr_data_windows_y = train_arr_y
     #tr_data_size = tr_input_seq.shape[0]                   #3899
@@ -235,7 +251,7 @@ def run_super_params():
     print('Data Size:\t\t', len(dataset))
     print('Batches per Epoch:\t', int(len(dataset)/tr_input_seq.shape[0]))
 
-    model.fit(data_loader, epochs=epochs_size, start_epoch=0, verbose=True)
+    best_epoch, best_loss = model.fit(data_loader, epochs=epochs_size, start_epoch=0, verbose=True)
 
     model.load_state_dict(torch.load('mvtae_model_best.pth'))
 
@@ -246,8 +262,8 @@ def run_super_params():
         alpha_test_visual(model, test_arr_x, test_arr_y)
 
     alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
-    mse, mae, r2 = alpha_test_scores(model, test_arr_x, test_arr_y)
-    return mse, mae, r2
+    mse, mae, r2 = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
+    return mse, mae, r2, best_epoch, best_loss
 
 
 if __name__ == '__main__':
@@ -260,11 +276,13 @@ if __name__ == '__main__':
 
     #载入超参数配置文件，跑出来的结果写入文件
 
-    super_params = pd.read_csv('super_params.csv', header=0)
+    df_super_params = pd.read_csv('super_params.csv', index_col = 'index', header=0)
 
-    for _, row in super_params.iterrows():
-        index = int(row['index'])
-        if index < index_start_super_params:
+    dic_super_params = df_super_params.to_dict('index')
+
+    for index_sp in index_list_super_params:
+        row = dic_super_params[index_sp]
+        if not row:
             continue
         window_size        = int(row['window_size'])
         hidden_vector_size = int(row['hidden_vector_size'])
@@ -272,20 +290,24 @@ if __name__ == '__main__':
         batch_size         = int(row['batch_size'])
         weight_decoder     = int(row['weight_decoder'])
 
-        mse, mae, r2 = run_super_params()     #把结果写入文件
+        mse, mae, r2, best_epoch, best_loss = run_super_params()     #把结果写入文件
 
         if not os.path.exists("super_params_scores.csv"):
-            df = pd.DataFrame(columns=['index_sp', 'mse', 'mae', 'r2'])
+            df = pd.DataFrame(columns=['index_sp', 'mse', 'mae', 'r2', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
             df.to_csv("super_params_scores.csv", index = False)
 
         superParams = {}
-        superParams['index_sp'] = index
-        superParams['mse']      = mse
-        superParams['mae']      = mae
-        superParams['r2']       = r2
+        superParams['index_sp']            = index_sp
+        superParams['mse']                 = mse
+        superParams['mae']                 = mae
+        superParams['r2']                  = r2
+        superParams['epochs']              = int(epochs_size)
+        superParams['epoch_best']          = best_epoch
+        superParams['epoch_best_loss']     = best_loss
         dataframe = pd.read_csv("super_params_scores.csv")
         dataframe = dataframe.append([superParams], ignore_index = True)
         dataframe.to_csv("super_params_scores.csv", index = False)
+
 
 
 

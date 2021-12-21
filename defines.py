@@ -6,6 +6,11 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torch import nn, from_numpy
 
+import random
+
+random.seed(42)
+np.random.seed(42)
+
 features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
 window_size = 100             #窗口的大小               可配置
@@ -17,10 +22,12 @@ hidden_vector_size = 64       #                       可配置
 hidden_alpha_size = 16        #                       可配置
 batch_size = 1024             #                       可配置
 weight_decoder = 10           #                       可配置
-epochs_size = 3000
+epochs_size = 6000
 
 
-index_start_super_params = 1  #第一个运行的超参数索引
+index_start_super_params = 9  #第一个运行的超参数索引
+
+index_list_super_params = [1,2,3,4,5,6,7]
 
 
 def norm(data, hi=None, lo=None):          #hi,lo是外部输入的最大最小值，更高优先级（在Python中，None、空列表[]、空字典{}、空元组()、0等一系列代表空和无的对象会被转换成False）

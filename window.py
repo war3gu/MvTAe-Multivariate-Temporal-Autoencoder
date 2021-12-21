@@ -38,5 +38,7 @@ class window:
     def get_norm_data_array(self):
         return np.array(self.norm_x), self.norm_y
 
-    def get_raw_data(self):
-        return
+    def get_raw_data(self, norm_pre_y):                           #还原数据
+        _, hi, lo = norm(self.data_x[feature_y][:])
+        raw_pre_y = reverse_norm(norm_pre_y, hi, lo)
+        return self.data_y[feature_y], raw_pre_y

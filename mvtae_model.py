@@ -137,3 +137,5 @@ class MVTAEModel(nn.Module):
             with open('loss.log', 'a') as flog:
                 flog.write('{0},{1},{2},{3},{4}\n'.format(datetime.utcnow(), i, loss, loss_decoder, loss_alpha))
         print('Best epoch: {0} | loss {1}'.format(self.best_epoch, self.best_loss))
+        sum_best_loss = self.best_loss.item()         #一般性的方法是转化为ndarray再取值
+        return int(self.best_epoch), sum_best_loss
