@@ -22,7 +22,11 @@ hidden_vector_size = 64       #                       可配置
 hidden_alpha_size = 16        #                       可配置
 batch_size = 1024             #                       可配置
 weight_decoder = 10           #                       可配置
-epochs_size = 6000
+epochs_size = 10              #                       可配置
+dropout_p   = 0.1             #                       可配置
+lr          = 0.0001          #                       可配置
+id_stock    = '000333.sz'     #                       可配置
+id_market   = 'SSE'
 
 
 index_start_super_params = 9  #第一个运行的超参数索引
@@ -30,67 +34,31 @@ index_start_super_params = 9  #第一个运行的超参数索引
 index_list_super_params = [1,2,3,4,5,6,7]
 
 
-def norm(data, hi=None, lo=None):          #hi,lo是外部输入的最大最小值，更高优先级（在Python中，None、空列表[]、空字典{}、空元组()、0等一系列代表空和无的对象会被转换成False）
-    hi = np.max(data) if not hi else hi    #hi如果等于False，就从data中找最大值（默认是None，就等于False）。否则执行hi=hi
-    lo = np.min(data) if not lo else lo
-    if hi-lo == 0:
-        return 0, hi, lo
-    y = (data-lo)/(hi-lo)
-    return y, hi, lo
+FIELD_DATE = 'trade_date'
 
-def reverse_norm(y, hi, lo):
-    x = y*(hi-lo)+lo
-    return x
+features_stock_0 = ['open','high','low','close','vol','amount','pre_close','change','pct_chg']
 
-def zscore(data, mu=None, sigma=None):
-    # z = (x-μ)/σ
-    mu = np.mean(data) if not mu else mu
-    sigma = np.std(data) if not sigma else sigma
-    if sigma == 0:
-        return 0, mu, 0
-    return (data-mu)/sigma, mu, sigma
+features_stock_1 = ['open','high','low','close','vol']
 
-def reverse_zscore(z, mu, sigma):
-    # x = (zσ)+μ
-    x = (z*sigma)+mu
-    return x
+features_x = ['open','high','low','close','vol','amount','pre_close','change','pct_chg']
 
+feature_y = 'close'
 
+#features_stock = features_stock_1
 
+#features_size = len(features_stock)                       #属性池长度
 
+#stock_arr_yiyao = ['600196.sh','600276.sh','002821.sz','002001.sz']
 
-def calc_input_memory(input_shape):
-    input_bits = np.prod(input_shape, dtype='int64')*float_precision_bits
-    return input_bits / bits_in_MB
+#stock_arr_yiyao1 = ['600196.sh','000963.sz','600276.sh','600079.sh','002422.sz','600380.sh','600420.sh','002001.sz',
+                    #'600664.sh','000513.sz','600267.sh','600673.sh','600062.sh','600216.sh','000739.sz','002793.sz']
 
-def calc_model_memory(model):
-    mods = list(model.modules())
-    sizes = []
-    for i in range(1,len(mods)):
-        m = mods[i]
-        p = list(m.parameters())
-        for j in range(len(p)):
-            sizes.append(np.array(p[j].size()))
+#stock_arr_jiadian = ['000333.sz', '600690.sh', '000651.sz']
 
-    total_bits = 0
-    for i in range(len(sizes)):
-        s = sizes[i]
-        bits = np.prod(np.array(s), dtype='int64')*float_precision_bits
-        total_bits += bits
-    return total_bits / bits_in_MB
+#stock_arr_0 = ['000333.sz', '600196.sh', '600519.sh', '600104.sh']
 
-def calc_model_params(model):
-    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    return num_params
+stocks_list = ['000333.sz', '600196.sh', '600519.sh', '600104.sh']
 
-class Data(Dataset):
+data_folder = './data'
 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def __getitem__(self, idx):
-        return (self.x[idx], self.y[idx])
-
-    def __len__(self):
-        return len(self.x)
+token_TS = '51295be6098fe565f6f727019e280ba4821ad5554b551c311bc33ae3'

@@ -15,6 +15,7 @@ from torch.utils.data import Dataset, TensorDataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from defines import *
+from utils   import *
 
 class window:
     def __init__(self, data_x, data_y):

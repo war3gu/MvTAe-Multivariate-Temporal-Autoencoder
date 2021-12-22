@@ -17,6 +17,7 @@ from torch import nn, from_numpy
 from window import window
 
 from defines import *
+from utils   import *
 
 from mvtae_model import MVTAEModel
 
@@ -160,23 +161,36 @@ def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
 
     #test_arr_x, test_arr_y, test_arr_window 维度应该是一样的
     #如果原始数据可能为0，就不能除以。股价应该没这个问题，除以后，看预测值的波动范围,与MSE，mae，r2比较，这些都是归一化后数据的指标
-    '''
-    for i in range(test_arr_window.shape[0]):
-        oneWin     = test_arr_window[i]
-        raw_y, raw_pre_y  = oneWin.get_raw_data(alpha_output[i])
-        norm_pre_y = test_arr_y[i]
-        deviationPercent = alpha_output/test_arr_y - 1   #test_arr_y
-        dev_per_mean = np.mean(deviationPercent)
-        dev_per_std = np.std(deviationPercent)
-    '''
+    list_y_raw = []
+    list_y_pre = []
 
-    return mse, mae, r2,
+    for i in range(test_arr_window.shape[0]):
+        win     = test_arr_window[i]
+        y_raw, y_pre  = win.get_raw_data(alpha_output[i])
+        list_y_raw.append(y_raw)
+        list_y_pre.append(y_pre)
+
+
+    deviationPercent = np.array(list_y_pre)/np.array(list_y_raw) - 1   #test_arr_y
+    dev_per_mean = np.mean(deviationPercent)
+    dev_per_std = np.std(deviationPercent)
+
+    return mse, mae, r2, dev_per_mean, dev_per_std
 
 
 
 def run_super_params():
     # Load Data
-    data = pd.read_csv('./data/data.csv', header=0)
+
+    fullpath = os.path.join('./data', id_stock)
+
+    fullpath = fullpath + '.csv'
+
+    data = pd.read_csv(fullpath, header=0, index_col=0)
+    print(data)
+    data.sort_values(by=FIELD_DATE, ascending=True, inplace=True)  #此处需要从前到后
+    data = data.reset_index(drop=True)
+    print(data)
 
     if pycharm_use:
         raw_data_schematic(data)
@@ -240,8 +254,8 @@ def run_super_params():
                        model_name='mvtae_model',
                        hidden_vector_size=hidden_vector_size,
                        hidden_alpha_size=hidden_alpha_size,
-                       dropout_p=0.1,
-                       optim_lr=0.0001)
+                       dropout_p=dropout_p,
+                       optim_lr=lr)
 
     print('-'*30)
     print('Data Batch Size:\t%.2fMB' % calc_input_memory((batch_size, tr_input_seq.shape[1], tr_input_seq.shape[2])))
@@ -262,8 +276,8 @@ def run_super_params():
         alpha_test_visual(model, test_arr_x, test_arr_y)
 
     alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
-    mse, mae, r2 = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
-    return mse, mae, r2, best_epoch, best_loss
+    mse, mae, r2, dev_per_mean, dev_per_std = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
+    return mse, mae, r2, dev_per_mean, dev_per_std, best_epoch, best_loss
 
 
 if __name__ == '__main__':
@@ -273,6 +287,8 @@ if __name__ == '__main__':
     opt = vars(parser.parse_args())
 
     pycharm_use = opt["pycharm"]
+
+    pycharm_use = 0
 
     #载入超参数配置文件，跑出来的结果写入文件
 
@@ -289,11 +305,15 @@ if __name__ == '__main__':
         hidden_alpha_size  = int(row['hidden_alpha_size'])
         batch_size         = int(row['batch_size'])
         weight_decoder     = int(row['weight_decoder'])
+        epochs_size        = int(row['epochs_size'])
+        dropout_p          = row['dropout_p']
+        lr                 = row['lr']
+        id_stock           = id_stock                                #不同的股票可以设置不同的超参数，自由组合
 
-        mse, mae, r2, best_epoch, best_loss = run_super_params()     #把结果写入文件
+        mse, mae, r2, dev_per_mean, dev_per_std, best_epoch, best_loss = run_super_params()     #把结果写入文件
 
         if not os.path.exists("super_params_scores.csv"):
-            df = pd.DataFrame(columns=['index_sp', 'mse', 'mae', 'r2', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
+            df = pd.DataFrame(columns=['id_stock', 'index_sp', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
             df.to_csv("super_params_scores.csv", index = False)
 
         superParams = {}
@@ -301,9 +321,12 @@ if __name__ == '__main__':
         superParams['mse']                 = mse
         superParams['mae']                 = mae
         superParams['r2']                  = r2
-        superParams['epochs']              = int(epochs_size)
+        superParams['dev_per_mean']        = dev_per_mean
+        superParams['dev_per_std']         = dev_per_std
+        superParams['epochs']              = epochs_size
         superParams['epoch_best']          = best_epoch
         superParams['epoch_best_loss']     = best_loss
+        superParams['id_stock']            = id_stock
         dataframe = pd.read_csv("super_params_scores.csv")
         dataframe = dataframe.append([superParams], ignore_index = True)
         dataframe.to_csv("super_params_scores.csv", index = False)
