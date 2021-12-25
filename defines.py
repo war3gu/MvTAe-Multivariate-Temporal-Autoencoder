@@ -8,30 +8,44 @@ from torch import nn, from_numpy
 
 import random
 
-random.seed(42)
-np.random.seed(42)
+ID_SEED = 42
+
+random.seed(ID_SEED)
+np.random.seed(ID_SEED)
+torch.manual_seed(ID_SEED)
+torch.cuda.manual_seed(ID_SEED)
+torch.cuda.manual_seed_all(ID_SEED)
+
 
 features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
-window_size = 100             #窗口的大小               可配置
+
 step_size = 1                 #窗口移动的步长
 split_ratio = 0.8             #窗口分割比例
 float_precision_bits = 32
 bits_in_MB = 8e6
-hidden_vector_size = 64       #                       可配置
-hidden_alpha_size = 16        #                       可配置
-batch_size = 1024             #                       可配置
-weight_decoder = 10           #                       可配置
-epochs_size = 10              #                       可配置
-dropout_p   = 0.1             #                       可配置
-lr          = 0.0001          #                       可配置
-id_stock    = '000333.sz'     #                       可配置
+
+
+
+
+
+
+
 id_market   = 'SSE'
 
+class macro():
+    window_size = 100             #窗口的大小               可配置
+    weight_decoder = 10           #                       可配置
+    hidden_vector_size = 64       #                       可配置
+    hidden_alpha_size = 16        #                       可配置
+    batch_size = 1024             #                       可配置
+    epochs_size = 10              #                       可配置
+    dropout_p   = 0.1             #                       可配置
+    lr          = 0.0001          #                       可配置
+    id_stock    = '000333.sz'     #                       可配置
 
-index_start_super_params = 9  #第一个运行的超参数索引
 
-index_list_super_params = [1,2,3,4,5,6,7]
+index_list_super_params = [1,2,3,4,5,6,7,8,9]
 
 
 FIELD_DATE = 'trade_date'

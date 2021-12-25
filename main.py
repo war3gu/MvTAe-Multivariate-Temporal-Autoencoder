@@ -16,8 +16,9 @@ from torch import nn, from_numpy
 
 from window import window
 
-from defines import *
+#from defines import *
 from utils   import *
+#from defines import *
 
 from mvtae_model import MVTAEModel
 
@@ -43,9 +44,9 @@ def raw_data_schematic(data):
     # # Transform & Normalize Data
 
     #显示第一个窗口的数据
-    plt.plot(norm(data['sine_1'][:window_size])[0], label='sine_1')
-    plt.plot(norm(data['sine_2'][:window_size])[0], label='sine_2')
-    plt.plot(norm(data['combined'][:window_size])[0], label='combined')
+    plt.plot(norm(data['sine_1'][:macro.window_size])[0], label='sine_1')
+    plt.plot(norm(data['sine_2'][:macro.window_size])[0], label='sine_2')
+    plt.plot(norm(data['combined'][:macro.window_size])[0], label='combined')
     plt.legend()
     plt.show()
 
@@ -62,7 +63,7 @@ def norm_data_schematic(data, tr_input_seq, tr_data_windows_y):
 
     plt.subplot(2,1,2)              # test prediction Y with visual
     p = [None for x in range(9)]
-    xxxx = data[feature_y][:window_size]             #取得第一个窗口的所有combined
+    xxxx = data[feature_y][:macro.window_size]             #取得第一个窗口的所有combined
     dddd = norm(xxxx)[0]                              #归一化所有combined
     p.append(dddd.iloc[-1])                           #最后一个归一化的combined加入p（data中索引是window_size-1）
     p.append(tr_data_windows_y[0])                    #归一化的y加入p（data中索引是window_size）
@@ -94,7 +95,7 @@ def hidden_state_verctor_visual(model, tr_input_seq):
 def decoder_visual(model, tr_input_seq):
     model.eval()
     idx = 5                                         #进行重构的输入的索引
-    y_in = tr_input_seq[idx].reshape(1, window_size, tr_input_seq.shape[2])
+    y_in = tr_input_seq[idx].reshape(1, macro.window_size, tr_input_seq.shape[2])
     hidden_state_vector, decoder_output, alpha_output = model(from_numpy(y_in).float())
     plt.subplot(3,1,1)
     plt.plot(tr_input_seq[idx,:,0], label='Target')
@@ -182,7 +183,7 @@ def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
 def run_super_params():
     # Load Data
 
-    fullpath = os.path.join('./data', id_stock)
+    fullpath = os.path.join('./data', macro.id_stock)
 
     fullpath = fullpath + '.csv'
 
@@ -197,7 +198,7 @@ def run_super_params():
 
     raw_data_size = data.shape[0]
     index_window_start = 0
-    index_window_end = index_window_start + window_size
+    index_window_end = index_window_start + macro.window_size
     list_window = []
     list_x = []
     list_y = []
@@ -214,7 +215,7 @@ def run_super_params():
         list_y.append(ret_y_arr)
         list_window.append(oneWin)
         index_window_start = index_window_start + step_size
-        index_window_end = index_window_start + window_size
+        index_window_end = index_window_start + macro.window_size
 
     count_window = len(list_x)
     count_train = int(np.ceil(count_window * split_ratio))
@@ -244,7 +245,7 @@ def run_super_params():
 
     data_loader = DataLoader(
         dataset=dataset,
-        batch_size=batch_size
+        batch_size=macro.batch_size
     )
 
     model = MVTAEModel(model_save_path='./',
@@ -252,20 +253,20 @@ def run_super_params():
                        in_data_dims=tr_input_seq.shape[2],
                        out_data_dims=tr_input_seq.shape[2],
                        model_name='mvtae_model',
-                       hidden_vector_size=hidden_vector_size,
-                       hidden_alpha_size=hidden_alpha_size,
-                       dropout_p=dropout_p,
-                       optim_lr=lr)
+                       hidden_vector_size=macro.hidden_vector_size,
+                       hidden_alpha_size=macro.hidden_alpha_size,
+                       dropout_p=macro.dropout_p,
+                       optim_lr=macro.lr)
 
     print('-'*30)
-    print('Data Batch Size:\t%.2fMB' % calc_input_memory((batch_size, tr_input_seq.shape[1], tr_input_seq.shape[2])))
+    print('Data Batch Size:\t%.2fMB' % calc_input_memory((macro.batch_size, tr_input_seq.shape[1], tr_input_seq.shape[2])))
     print('Model Size:\t\t%.2fMB' % calc_model_memory(model))
     print('Model Parameters:\t%d' % calc_model_params(model))
     print('-'*30)
     print('Data Size:\t\t', len(dataset))
     print('Batches per Epoch:\t', int(len(dataset)/tr_input_seq.shape[0]))
 
-    best_epoch, best_loss = model.fit(data_loader, epochs=epochs_size, start_epoch=0, verbose=True)
+    best_epoch, best_loss = model.fit(data_loader, epochs=macro.epochs_size, start_epoch=0, verbose=True)
 
     model.load_state_dict(torch.load('mvtae_model_best.pth'))
 
@@ -278,6 +279,7 @@ def run_super_params():
     alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
     mse, mae, r2, dev_per_mean, dev_per_std = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
     return mse, mae, r2, dev_per_mean, dev_per_std, best_epoch, best_loss
+
 
 
 if __name__ == '__main__':
@@ -296,21 +298,27 @@ if __name__ == '__main__':
 
     dic_super_params = df_super_params.to_dict('index')
 
+
+
     for index_sp in index_list_super_params:
         row = dic_super_params[index_sp]
         if not row:
             continue
-        window_size        = int(row['window_size'])
-        hidden_vector_size = int(row['hidden_vector_size'])
-        hidden_alpha_size  = int(row['hidden_alpha_size'])
-        batch_size         = int(row['batch_size'])
-        weight_decoder     = int(row['weight_decoder'])
-        epochs_size        = int(row['epochs_size'])
-        dropout_p          = row['dropout_p']
-        lr                 = row['lr']
-        id_stock           = id_stock                                #不同的股票可以设置不同的超参数，自由组合
+
+        macro.window_size        = int(row['window_size'])
+        macro.hidden_vector_size = int(row['hidden_vector_size'])
+        macro.hidden_alpha_size  = int(row['hidden_alpha_size'])
+        macro.batch_size         = int(row['batch_size'])
+        macro.weight_decoder     = float(row['weight_decoder'])
+        macro.epochs_size        = int(row['epochs_size'])
+        macro.dropout_p          = row['dropout_p']
+        macro.lr                 = row['lr']
+        macro.id_stock           = macro.id_stock                                 #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
 
         mse, mae, r2, dev_per_mean, dev_per_std, best_epoch, best_loss = run_super_params()     #把结果写入文件
+
+        print(macro.weight_decoder)
+        print(macro.epochs_size)
 
         if not os.path.exists("super_params_scores.csv"):
             df = pd.DataFrame(columns=['id_stock', 'index_sp', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
@@ -323,10 +331,10 @@ if __name__ == '__main__':
         superParams['r2']                  = r2
         superParams['dev_per_mean']        = dev_per_mean
         superParams['dev_per_std']         = dev_per_std
-        superParams['epochs']              = epochs_size
+        superParams['epochs']              = macro.epochs_size
         superParams['epoch_best']          = best_epoch
         superParams['epoch_best_loss']     = best_loss
-        superParams['id_stock']            = id_stock
+        superParams['id_stock']            = macro.id_stock
         dataframe = pd.read_csv("super_params_scores.csv")
         dataframe = dataframe.append([superParams], ignore_index = True)
         dataframe.to_csv("super_params_scores.csv", index = False)

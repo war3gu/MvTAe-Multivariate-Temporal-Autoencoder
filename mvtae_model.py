@@ -14,9 +14,11 @@ from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
+import math
 
 import sys
-from defines import *
+#from defines import *
+
 from utils   import *
 
 class MVTAEModel(nn.Module):
@@ -110,9 +112,17 @@ class MVTAEModel(nn.Module):
         with open('loss.log', 'w') as flog:
             flog.write('Timestamp,Epoch,Loss\n')
 
+        epochs_count = epochs - start_epoch
+        mul = macro.weight_decoder/0.001
+        lll = math.log(mul)
+        ccc = -(lll/epochs_count)
+        eee = math.exp(ccc)
+        weight_last = macro.weight_decoder
+
+
         for i in tqdm(range(start_epoch, epochs), disable=not verbose):
             self.train()                                                         # set model to training mode
-
+            weight_last = weight_last * eee
             for x_batch, y_batch in data_loader:
                 x = x_batch.to(self.device)
                 x_inv = x.flip(1)                                                 #翻转第一维，也就是seq_len那一维
@@ -123,7 +133,7 @@ class MVTAEModel(nn.Module):
 
                 loss_decoder = self.loss_decoder(decoder_output, x_inv)
                 loss_alpha = self.loss_alpha(alpha_output, y)
-                loss = loss_decoder*weight_decoder + loss_alpha                                  #此处可以加一个超参数权重，需要寻找使alpha test loss最小的值
+                loss = loss_decoder*weight_last + loss_alpha                      #此处可以加一个超参数权重，需要寻找使alpha test loss最小的值
 
                 loss.backward()                                                   #计算梯度并保存在tensor中
                 
