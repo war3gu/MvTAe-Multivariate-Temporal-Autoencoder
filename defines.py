@@ -42,7 +42,8 @@ class macro():
     epochs_size = 10              #                       可配置
     dropout_p   = 0.1             #                       可配置
     lr          = 0.0001          #                       可配置
-    id_stock    = '000333.sz'     #                       可配置
+    weight_decay= 0.1             #                       可配置
+    id_stock    = '600196.sh'     #                       可配置
 
 
 index_list_super_params = [1,2,3,4,5,6,7,8,9]

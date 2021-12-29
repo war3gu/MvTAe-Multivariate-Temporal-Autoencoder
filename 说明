@@ -48,3 +48,7 @@ window_size 100Ö»ÄÜ²¶×½100¸ö½»Ò×ÈÕÒÔÄÚµÄÇ÷ÊÆ£¬¹ÉÆ±Êµ¼ÊµÄÇ÷ÊÆ¿ÉÄÜ»á³¤´ï¼¸Äê,ÈçºÎ´
 Ð´³öÀ´µÄÄ£ÐÍÏÈÓÃÒ»¸öÐ¡Êý¾Ý¼¯ÑµÁ·£¬¿´¿´ÄÜ²»ÄÜÑµÁ·³öµÄlossÎª0
 
 sin2Ò»¸öÑ­»·Îª1000£¬ÊÇ·ñwindow_sizeÉèÖÃÎª1000Ð§¹û¸üºÃ£¿
+
+¿¼ÂÇ°Ñweight_decoder¸Ä³ÉÒ»¸öËêepoch_size±ä»¯µÄÖµ
+
+decoderµÄ×÷ÓÃÏàµ±ÓÚÌí¼ÓÁËÒ»¸öÕýÔò»¯Ïî£¬±ÜÃâ²ÎÊýÅÜµÄÌ«Æ«

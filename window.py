@@ -42,4 +42,9 @@ class window:
     def get_raw_data(self, norm_pre_y):                           #还原数据
         _, hi, lo = norm(self.data_x[feature_y][:])
         raw_pre_y = reverse_norm(norm_pre_y, hi, lo)
-        return self.data_y[feature_y], raw_pre_y
+        y_raw_1   = self.data_x[feature_y].iloc[-1]
+        #ffff      = self.data_x[feature_y]
+        #xxxx      = self.data_x[-1]
+        #y_raw_1   = xxxx[feature_y]
+        #y_raw_1   = ffff[-1]                    #前一天的收盘价
+        return self.data_y[feature_y], raw_pre_y, y_raw_1

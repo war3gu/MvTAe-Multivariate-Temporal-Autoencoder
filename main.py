@@ -165,18 +165,34 @@ def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
     list_y_raw = []
     list_y_pre = []
 
+    posi_posi_count = 0
+    nega_nega_count = 0
+    posi_count = 0
+    nega_count = 0
+
     for i in range(test_arr_window.shape[0]):
         win     = test_arr_window[i]
-        y_raw, y_pre  = win.get_raw_data(alpha_output[i])
+        y_raw, y_pre, y_raw_1 = win.get_raw_data(alpha_output[i])
         list_y_raw.append(y_raw)
         list_y_pre.append(y_pre)
+        if y_raw > y_raw_1:
+            posi_count += 1
+            if y_pre > y_raw_1:
+                posi_posi_count += 1
+        else:
+            nega_count += 1
+            if y_pre <= y_raw_1:
+                nega_nega_count += 1
 
+    per_pp = posi_posi_count/posi_count
+    per_nn = nega_nega_count/nega_count
+    per_corr = (posi_posi_count+nega_nega_count)/(posi_count+nega_count)
 
     deviationPercent = np.array(list_y_pre)/np.array(list_y_raw) - 1   #test_arr_y
     dev_per_mean = np.mean(deviationPercent)
     dev_per_std = np.std(deviationPercent)
 
-    return mse, mae, r2, dev_per_mean, dev_per_std
+    return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr
 
 
 
@@ -256,7 +272,8 @@ def run_super_params():
                        hidden_vector_size=macro.hidden_vector_size,
                        hidden_alpha_size=macro.hidden_alpha_size,
                        dropout_p=macro.dropout_p,
-                       optim_lr=macro.lr)
+                       optim_lr=macro.lr,
+                       optim_weight_decay=macro.weight_decay)
 
     print('-'*30)
     print('Data Batch Size:\t%.2fMB' % calc_input_memory((macro.batch_size, tr_input_seq.shape[1], tr_input_seq.shape[2])))
@@ -277,8 +294,8 @@ def run_super_params():
         alpha_test_visual(model, test_arr_x, test_arr_y)
 
     alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
-    mse, mae, r2, dev_per_mean, dev_per_std = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
-    return mse, mae, r2, dev_per_mean, dev_per_std, best_epoch, best_loss
+    mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
+    return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
 
 
 
@@ -313,30 +330,34 @@ if __name__ == '__main__':
         macro.epochs_size        = int(row['epochs_size'])
         macro.dropout_p          = row['dropout_p']
         macro.lr                 = row['lr']
+        macro.weight_decay       = row['weight_decay']
         macro.id_stock           = macro.id_stock                                 #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
 
-        mse, mae, r2, dev_per_mean, dev_per_std, best_epoch, best_loss = run_super_params()     #把结果写入文件
+        mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
 
         print(macro.weight_decoder)
         print(macro.epochs_size)
 
         if not os.path.exists("super_params_scores.csv"):
-            df = pd.DataFrame(columns=['id_stock', 'index_sp', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
+            df = pd.DataFrame(columns=['id_stock', 'index_sp', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'per_pp', 'per_nn', 'per_corr', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
             df.to_csv("super_params_scores.csv", index = False)
 
-        superParams = {}
-        superParams['index_sp']            = index_sp
-        superParams['mse']                 = mse
-        superParams['mae']                 = mae
-        superParams['r2']                  = r2
-        superParams['dev_per_mean']        = dev_per_mean
-        superParams['dev_per_std']         = dev_per_std
-        superParams['epochs']              = macro.epochs_size
-        superParams['epoch_best']          = best_epoch
-        superParams['epoch_best_loss']     = best_loss
-        superParams['id_stock']            = macro.id_stock
+        superParamsScores = {}
+        superParamsScores['index_sp']            = index_sp
+        superParamsScores['mse']                 = round(mse, 4)
+        superParamsScores['mae']                 = round(mae, 4)
+        superParamsScores['r2']                  = round(r2, 4)
+        superParamsScores['dev_per_mean']        = round(dev_per_mean, 4)
+        superParamsScores['dev_per_std']         = round(dev_per_std, 4)
+        superParamsScores['per_pp']              = round(per_pp, 4)
+        superParamsScores['per_nn']              = round(per_nn, 4)
+        superParamsScores['per_corr']            = round(per_corr, 4)
+        superParamsScores['epochs']              = macro.epochs_size        #
+        superParamsScores['epoch_best']          = best_epoch               #
+        superParamsScores['epoch_best_loss']     = round(best_loss, 4)
+        superParamsScores['id_stock']            = macro.id_stock           #
         dataframe = pd.read_csv("super_params_scores.csv")
-        dataframe = dataframe.append([superParams], ignore_index = True)
+        dataframe = dataframe.append([superParamsScores], ignore_index = True)
         dataframe.to_csv("super_params_scores.csv", index = False)
 
 
