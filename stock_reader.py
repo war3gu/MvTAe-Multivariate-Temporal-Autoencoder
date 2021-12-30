@@ -1,4 +1,4 @@
-import os
+﻿import os
 import datetime
 import urllib3
 from dateutil.parser import parse
@@ -86,6 +86,6 @@ def download_daily(startIndex, endIndex):
 
 
 if __name__ == '__main__':
-    download_daily(0, 100)
+    download_daily(0, 5)
     # download_stocks_list()
     # download_all()

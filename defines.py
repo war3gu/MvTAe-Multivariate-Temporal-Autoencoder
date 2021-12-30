@@ -46,7 +46,7 @@ class macro():
     id_stock    = '600196.sh'     #                       可配置
 
 
-index_list_super_params = [1,2,3,4,5,6,7,8,9]
+index_list_super_params = [1]
 
 
 FIELD_DATE = 'trade_date'

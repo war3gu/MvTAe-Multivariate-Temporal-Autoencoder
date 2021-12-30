@@ -297,26 +297,7 @@ def run_super_params():
     mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
     return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
 
-
-
-if __name__ == '__main__':
-    print("main")
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--pycharm', '--pycharm', required=False, default=0, help='use pycharm?')
-    opt = vars(parser.parse_args())
-
-    pycharm_use = opt["pycharm"]
-
-    pycharm_use = 0
-
-    #载入超参数配置文件，跑出来的结果写入文件
-
-    df_super_params = pd.read_csv('super_params.csv', index_col = 'index', header=0)
-
-    dic_super_params = df_super_params.to_dict('index')
-
-
-
+def run_stock(id_stock, dic_super_params):
     for index_sp in index_list_super_params:
         row = dic_super_params[index_sp]
         if not row:
@@ -331,7 +312,7 @@ if __name__ == '__main__':
         macro.dropout_p          = row['dropout_p']
         macro.lr                 = row['lr']
         macro.weight_decay       = row['weight_decay']
-        macro.id_stock           = macro.id_stock                                 #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
+        macro.id_stock           = id_stock                              #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
 
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
 
@@ -359,6 +340,38 @@ if __name__ == '__main__':
         dataframe = pd.read_csv("super_params_scores.csv")
         dataframe = dataframe.append([superParamsScores], ignore_index = True)
         dataframe.to_csv("super_params_scores.csv", index = False)
+
+
+if __name__ == '__main__':
+    print("main")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pycharm', '--pycharm', required=False, default=0, help='use pycharm?')
+    opt = vars(parser.parse_args())
+
+    pycharm_use = opt["pycharm"]
+
+    pycharm_use = 0
+
+    #载入超参数配置文件，跑出来的结果写入文件
+
+    df_super_params = pd.read_csv('super_params.csv', index_col = 'index', header=0)
+
+    dic_super_params = df_super_params.to_dict('index')
+
+    stocks_list = pd.read_csv('stocks_list.csv',)
+
+    for i in range(0,100):
+        print(i)
+        stock_df = stocks_list.iloc[i]
+        ts_code = stock_df.ts_code.lower()
+        fullPath = os.path.join(data_folder, ts_code)
+        fullName = '{}.csv'.format(fullPath)
+        if os.path.isfile(fullName):
+            run_stock(ts_code, dic_super_params)
+
+
+
+
 
 
 
