@@ -3,6 +3,7 @@ import datetime
 import urllib3
 from dateutil.parser import parse
 import threading
+import pandas as pd
 
 #assert 'QUANDL_KEY' in os.environ
 import defines
@@ -54,5 +55,17 @@ def download_all():
 		url = reader.build_url(symbol)
 		download(i, symbol, url, data_folder)
 
+def download_stocks_list():
+    data=pro.query('stock_basic',
+                   exchange='',
+                   list_status='L',
+                   fields='ts_code,symbol,name,area,market,industry,list_date')
+    print(data)
+    data.to_csv('stocks_list.csv')
+    
+def download_daily(startIndex, endIndex):
+    sl = pd.read_csv('stocks_list.csv', index_col = 'index', header=0)
+
 if __name__ == '__main__':
-	download_all()
+    download_stocks_list()
+	#download_all()
