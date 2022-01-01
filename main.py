@@ -23,6 +23,9 @@ from utils   import *
 from mvtae_model import MVTAEModel
 from mvtaeBinary_model import MVTAEBinaryModel
 
+from sklearn.metrics import confusion_matrix
+from plot_confusion_matrix import plot_confusion_matrix
+
 import matplotlib.pyplot as plt
 
 import argparse
@@ -155,7 +158,26 @@ def alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y):
     print('###  Train  Error/Accuracy Metrics ###')
     #print('MSE:\t', mean_squared_error(tr_data_windows_y, alpha_output))
     #print('MAE:\t', mean_absolute_error(tr_data_windows_y, alpha_output))
-    print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
+    #print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
+
+    lll = lambda x: int(x > 0.5)
+    mmm = list(map(lll, alpha_output))
+    cm = confusion_matrix(tr_data_windows_y, mmm)
+    print(cm)
+    #plot_confusion_matrix(cm, ['Down', 'Up'], normalize=True, title="Confusion Matrix")
+
+    #true negatives is:math:`C_{0,0}`,
+    #false negatives is :math:`C_{1,0}`,
+    #true positives is:math:`C_{1,1}`
+    #false positives is :math:`C_{0,1}`.
+
+    per_pp = cm[1][1]/cm[1].sum()
+    per_nn = cm[0][0]/cm[0].sum()
+    per_corr = (cm[0][0]+cm[1][1])/cm.sum()
+    print("train score")
+    print(per_pp)
+    print(per_nn)
+    print(per_corr)
 
 def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
     model.eval()
@@ -208,47 +230,21 @@ def alphaBinary_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
     model.eval()
     _,_ , alpha_output = model(from_numpy(test_arr_x).float())
     alpha_output = alpha_output.flatten().detach().cpu().numpy()
-    #print('###  Test  Error/Accuracy Metrics ###')
-    #mse = mean_squared_error(test_arr_y, alpha_output)
-    #mae = mean_absolute_error(test_arr_y, alpha_output)
-    #r2  = r2_score(test_arr_y, alpha_output)
-    #print('MSE:\t', mse)
-    #print('MAE:\t', mae)
-    #print('R²:\t',  r2)
 
+    lll = lambda x: int(x > 0.5)
+    mmm = list(map(lll, alpha_output))
+    cm = confusion_matrix(test_arr_y, mmm)
+    print(cm)
+    #plot_confusion_matrix(cm, ['Down', 'Up'], normalize=True, title="Confusion Matrix")
 
-    #test_arr_x, test_arr_y, test_arr_window 维度应该是一样的
-    #如果原始数据可能为0，就不能除以。股价应该没这个问题，除以后，看预测值的波动范围,与MSE，mae，r2比较，这些都是归一化后数据的指标
-    #list_y_raw = []
-    #list_y_pre = []
+    per_pp = cm[1][1]/cm[1].sum()
+    per_nn = cm[0][0]/cm[0].sum()
+    per_corr = (cm[0][0]+cm[1][1])/cm.sum()
 
-    posi_posi_count = 0
-    nega_nega_count = 0
-    posi_count = 0
-    nega_count = 0
-    for i in range(test_arr_y.shape[0]):
-        #win     = test_arr_window[i]
-        #y_raw, y_pre, y_raw_1 = win.get_raw_data(alpha_output[i])
-        #list_y_raw.append(y_raw)
-        #list_y_pre.append(y_pre)
-        y = test_arr_y[i]
-        y_pre = alpha_output[i]
-        if y > 0.5:
-            posi_count += 1
-            if y_pre > 0.5:
-                posi_posi_count += 1
-        else:
-            nega_count += 1
-            if y_pre <= 0.5:
-                nega_nega_count += 1
-
-    per_pp = posi_posi_count/posi_count
-    per_nn = nega_nega_count/nega_count
-    per_corr = (posi_posi_count+nega_nega_count)/(posi_count+nega_count)
-
-    #deviationPercent = np.array(list_y_pre)/np.array(list_y_raw) - 1   #test_arr_y
-    #dev_per_mean = np.mean(deviationPercent)
-    #dev_per_std = np.std(deviationPercent)
+    print("test score")
+    print(per_pp)
+    print(per_nn)
+    print(per_corr)
 
     return 0, 0, 0, 0, 0, per_pp, per_nn, per_corr
 
