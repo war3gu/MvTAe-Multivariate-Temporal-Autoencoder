@@ -39,6 +39,14 @@ class window:
     def get_norm_data_array(self):
         return np.array(self.norm_x), self.norm_y
 
+    def get_up_down_array(self):
+        xxx = self.norm_x.iloc[-1]
+        vvv = xxx[feature_y]
+        if self.norm_y > vvv:
+            return np.array(self.norm_x), 1
+        else:
+            return np.array(self.norm_x), 0
+
     def get_raw_data(self, norm_pre_y):                           #还原数据
         _, hi, lo = norm(self.data_x[feature_y][:])
         raw_pre_y = reverse_norm(norm_pre_y, hi, lo)

@@ -21,6 +21,7 @@ from utils   import *
 #from defines import *
 
 from mvtae_model import MVTAEModel
+from mvtaeBinary_model import MVTAEBinaryModel
 
 import matplotlib.pyplot as plt
 
@@ -194,6 +195,54 @@ def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
 
     return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr
 
+def alphaBinary_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
+    model.eval()
+    _,_ , alpha_output = model(from_numpy(test_arr_x).float())
+    alpha_output = alpha_output.flatten().detach().cpu().numpy()
+    #print('###  Test  Error/Accuracy Metrics ###')
+    #mse = mean_squared_error(test_arr_y, alpha_output)
+    #mae = mean_absolute_error(test_arr_y, alpha_output)
+    #r2  = r2_score(test_arr_y, alpha_output)
+    #print('MSE:\t', mse)
+    #print('MAE:\t', mae)
+    #print('R²:\t',  r2)
+
+
+    #test_arr_x, test_arr_y, test_arr_window 维度应该是一样的
+    #如果原始数据可能为0，就不能除以。股价应该没这个问题，除以后，看预测值的波动范围,与MSE，mae，r2比较，这些都是归一化后数据的指标
+    #list_y_raw = []
+    #list_y_pre = []
+
+    posi_posi_count = 0
+    nega_nega_count = 0
+    posi_count = 0
+    nega_count = 0
+    for i in range(test_arr_y.shape[0]):
+        #win     = test_arr_window[i]
+        #y_raw, y_pre, y_raw_1 = win.get_raw_data(alpha_output[i])
+        #list_y_raw.append(y_raw)
+        #list_y_pre.append(y_pre)
+        y = test_arr_y[i]
+        y_pre = alpha_output[i]
+        if y > 0.5:
+            posi_count += 1
+            if y_pre > 0.5:
+                posi_posi_count += 1
+        else:
+            nega_count += 1
+            if y_pre <= 0.5:
+                nega_nega_count += 1
+
+    per_pp = posi_posi_count/posi_count
+    per_nn = nega_nega_count/nega_count
+    per_corr = (posi_posi_count+nega_nega_count)/(posi_count+nega_count)
+
+    #deviationPercent = np.array(list_y_pre)/np.array(list_y_raw) - 1   #test_arr_y
+    #dev_per_mean = np.mean(deviationPercent)
+    #dev_per_std = np.std(deviationPercent)
+
+    return 0, 0, 0, 0, 0, per_pp, per_nn, per_corr
+
 
 
 def run_super_params():
@@ -226,7 +275,12 @@ def run_super_params():
         oneWin = window(data_x_temp, data_y_temp)
         oneWin.norm()
         ret_x_df, ret_y_df = oneWin.get_norm_data_frame()
-        ret_x_arr, ret_y_arr = oneWin.get_norm_data_array()
+
+        if binary_run:
+            ret_x_arr, ret_y_arr = oneWin.get_up_down_array()
+        else:
+            ret_x_arr, ret_y_arr = oneWin.get_norm_data_array()
+
         list_x.append(ret_x_arr)
         list_y.append(ret_y_arr)
         list_window.append(oneWin)
@@ -264,16 +318,31 @@ def run_super_params():
         batch_size=macro.batch_size
     )
 
-    model = MVTAEModel(model_save_path='./',
-                       seq_len=tr_input_seq.shape[1],
-                       in_data_dims=tr_input_seq.shape[2],
-                       out_data_dims=tr_input_seq.shape[2],
-                       model_name='mvtae_model',
-                       hidden_vector_size=macro.hidden_vector_size,
-                       hidden_alpha_size=macro.hidden_alpha_size,
-                       dropout_p=macro.dropout_p,
-                       optim_lr=macro.lr,
-                       optim_weight_decay=macro.weight_decay)
+    model = None
+    if binary_run:
+        model = MVTAEBinaryModel(model_save_path='./',
+                                 seq_len=tr_input_seq.shape[1],
+                                 in_data_dims=tr_input_seq.shape[2],
+                                 out_data_dims=tr_input_seq.shape[2],
+                                 model_name='mvtae_model',
+                                 hidden_vector_size=macro.hidden_vector_size,
+                                 hidden_alpha_size=macro.hidden_alpha_size,
+                                 dropout_p=macro.dropout_p,
+                                 optim_lr=macro.lr,
+                                 optim_weight_decay=macro.weight_decay)
+    else:
+        model = MVTAEModel(model_save_path='./',
+                           seq_len=tr_input_seq.shape[1],
+                           in_data_dims=tr_input_seq.shape[2],
+                           out_data_dims=tr_input_seq.shape[2],
+                           model_name='mvtae_model',
+                           hidden_vector_size=macro.hidden_vector_size,
+                           hidden_alpha_size=macro.hidden_alpha_size,
+                           dropout_p=macro.dropout_p,
+                           optim_lr=macro.lr,
+                           optim_weight_decay=macro.weight_decay)
+
+
 
     print('-'*30)
     print('Data Batch Size:\t%.2fMB' % calc_input_memory((macro.batch_size, tr_input_seq.shape[1], tr_input_seq.shape[2])))
@@ -293,9 +362,13 @@ def run_super_params():
         alpha_train_visual(model, tr_input_seq, tr_data_windows_y)
         alpha_test_visual(model, test_arr_x, test_arr_y)
 
-    alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
-    mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
-    return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
+    if binary_run:
+        mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alphaBinary_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
+        return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
+    else:
+        alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
+        mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
+        return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
 
 def run_stock(id_stock, dic_super_params):
     for index_sp in index_list_super_params:
@@ -352,6 +425,11 @@ if __name__ == '__main__':
 
     pycharm_use = 0
 
+    binary_run = False
+
+    if type_model == "binary":
+        binary_run = True
+
     #载入超参数配置文件，跑出来的结果写入文件
 
     df_super_params = pd.read_csv('super_params.csv', index_col = 'index', header=0)
@@ -360,6 +438,8 @@ if __name__ == '__main__':
 
     stocks_list = pd.read_csv('stocks_list.csv',)
 
+    run_stock("000333.sz", dic_super_params)
+    '''
     for i in range(0,100):
         print(i)
         stock_df = stocks_list.iloc[i]
@@ -368,6 +448,7 @@ if __name__ == '__main__':
         fullName = '{}.csv'.format(fullPath)
         if os.path.isfile(fullName):
             run_stock(ts_code, dic_super_params)
+    '''
 
 
 

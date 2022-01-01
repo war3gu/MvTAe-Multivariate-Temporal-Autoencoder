@@ -17,6 +17,8 @@ torch.cuda.manual_seed(ID_SEED)
 torch.cuda.manual_seed_all(ID_SEED)
 
 
+type_model = "binary"
+
 features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
 
