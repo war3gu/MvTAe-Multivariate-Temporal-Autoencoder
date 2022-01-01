@@ -170,10 +170,11 @@ def alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y):
     #false negatives is :math:`C_{1,0}`,
     #true positives is:math:`C_{1,1}`
     #false positives is :math:`C_{0,1}`.
+    tn, fp, fn, tp = cm.ravel()
 
-    per_pp = cm[1][1]/cm[1].sum()
-    per_nn = cm[0][0]/cm[0].sum()
-    per_corr = (cm[0][0]+cm[1][1])/cm.sum()
+    per_pp = tp/(tp+fn)   #TPR
+    per_nn = tn/(tn+fp)   #TNR
+    per_corr = (tp+tn)/(tn+fp+fn+tp)
     print("train score")
     print(per_pp)
     print(per_nn)
@@ -237,9 +238,11 @@ def alphaBinary_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
     print(cm)
     #plot_confusion_matrix(cm, ['Down', 'Up'], normalize=True, title="Confusion Matrix")
 
-    per_pp = cm[1][1]/cm[1].sum()
-    per_nn = cm[0][0]/cm[0].sum()
-    per_corr = (cm[0][0]+cm[1][1])/cm.sum()
+    tn, fp, fn, tp = cm.ravel()
+
+    per_pp = tp/(tp+fn)   #TPR
+    per_nn = tn/(tn+fp)   #TNR
+    per_corr = (tp+tn)/(tn+fp+fn+tp)
 
     print("test score")
     print(per_pp)
