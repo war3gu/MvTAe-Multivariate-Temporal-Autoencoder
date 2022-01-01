@@ -147,6 +147,15 @@ def alpha_train_scores(model, tr_input_seq, tr_data_windows_y):
     print('MSE:\t', mean_squared_error(tr_data_windows_y, alpha_output))
     print('MAE:\t', mean_absolute_error(tr_data_windows_y, alpha_output))
     print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
+    
+def alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y):
+    model.eval()
+    _,_ , alpha_output = model(from_numpy(tr_input_seq).float())
+    alpha_output = alpha_output.flatten().detach().cpu().numpy()
+    print('###  Train  Error/Accuracy Metrics ###')
+    #print('MSE:\t', mean_squared_error(tr_data_windows_y, alpha_output))
+    #print('MAE:\t', mean_absolute_error(tr_data_windows_y, alpha_output))
+    print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
 
 def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
     model.eval()
@@ -289,6 +298,8 @@ def run_super_params():
 
     count_window = len(list_x)
     count_train = int(np.ceil(count_window * split_ratio))
+    print("train count")
+    print(count_train)
     count_test = count_window - count_train
 
     #wwwwww = np.array(list_x)
@@ -315,7 +326,8 @@ def run_super_params():
 
     data_loader = DataLoader(
         dataset=dataset,
-        batch_size=macro.batch_size
+        batch_size=macro.batch_size,
+        shuffle = True
     )
 
     model = None
@@ -363,6 +375,7 @@ def run_super_params():
         alpha_test_visual(model, test_arr_x, test_arr_y)
 
     if binary_run:
+        alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y)
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alphaBinary_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
         return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
     else:
@@ -439,7 +452,9 @@ if __name__ == '__main__':
     stocks_list = pd.read_csv('stocks_list.csv',)
 
     run_stock("000333.sz", dic_super_params)
+    
     '''
+    
     for i in range(0,100):
         print(i)
         stock_df = stocks_list.iloc[i]
@@ -448,6 +463,7 @@ if __name__ == '__main__':
         fullName = '{}.csv'.format(fullPath)
         if os.path.isfile(fullName):
             run_stock(ts_code, dic_super_params)
+    
     '''
 
 

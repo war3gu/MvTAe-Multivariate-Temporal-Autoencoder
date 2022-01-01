@@ -172,7 +172,10 @@ class MVTAEBinaryModel(nn.Module):
                 flog.write('{0},{1},{2},{3},{4}\n'.format(datetime.utcnow(), i, loss_value, loss_decoder, loss_alpha))
 
             epoch_pass = i-self.best_epoch
-            if epoch_pass > 200:               #过了200epoch还没有提升
+            if epoch_pass > 10000:               #过了200epoch还没有提升
+                break
+            if loss_value < 0.00001:             #误差特别小
+                print("loss is too small")
                 break
 
         print('Best epoch: {0} | loss {1}'.format(self.best_epoch, self.best_loss))
