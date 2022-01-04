@@ -22,3 +22,27 @@ loss = loss_decoder + loss_alpha   增加weight，看看能否调参，使得tes
 试试把dropout_p降为0，看看结果是否随着epoch增加稳定优化
 
 我所追求的per_corr与loss并不是一个东西，导致loss降低，per_corr并没有相应的变化
+
+用decoder和不用decoder分别跑一下看看
+
+还是跑000333，把epoch_pass设置为1000看看结果是不是更好
+
+考虑把相关股票同一段时间内的数据搞在一起训练测试
+
+
+试试把所有避免dropout的超参数都干掉，只留decoder
+
+似乎decoder的权重需要特别小，因为alpha训练到最后会变的非常小，此时decoder成了拖累。把decoder想成防止过拟合项，权重一开始要非常小
+
+似乎dropout与decoder一起用，效果不太好
+
+考虑把decoder的dropout拿掉
+
+既然策略3效果好，跑一下别的股票
+
+简化模型，现在有没有可能是杀鸡用牛刀,跑的太慢了.只要能很快的train overfitting，模型就是足够的
+
+因为跑的太慢，遍历所有股票基本上是不可能的,但是Tesla T4已经能找到的最好gpu了
+
+把每只股票复杂模型都跑一遍似乎不现实，
+1.只跑decoder固定次数，把loss最小的重点研究

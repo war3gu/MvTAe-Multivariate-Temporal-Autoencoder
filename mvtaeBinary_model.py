@@ -68,10 +68,10 @@ class MVTAEBinaryModel(nn.Module):
         #self.loss_alpha = nn.MSELoss()
         self.loss_alpha = nn.BCELoss()
         self.optimizer = optim.Adam(self.parameters(), lr=optim_lr, weight_decay=optim_weight_decay)    #初始化优化器，将模型参数填入
-
+        print("binary")
         print("打印参数")
-        for name, param in self.named_parameters():
-            print(name, "  ", param.requires_grad)
+        #for name, param in self.named_parameters():
+        #    print(name, "  ", param.requires_grad)
         print("打印参数结束")
         
     def forward(self, x):
@@ -82,17 +82,18 @@ class MVTAEBinaryModel(nn.Module):
         hidden_state_vector = encoder_hidden[0]        #encoder_hidden 就是hn和cn.注意，shape没变，为（1，batch_size，hidden_vector_size），不受batch_first影响
         
         # Decoder
-        encoder_hidden_dropout = self.dropout(hidden_state_vector)
+        #encoder_hidden_dropout = self.dropout(hidden_state_vector)    #此处是不是会减弱decoder的效果？
+        encoder_hidden_dropout = hidden_state_vector                  #暂时不要dropout
         rrrrrr = encoder_hidden_dropout.repeat(self.seq_len, 1, 1)    #encoder输出的hidden vector，在dropout之后，对第0维进行扩展，方便输入decoder
         decoder_out, decoder_hidden = self.decoder(rrrrrr)            #输入decoder，在tensorboard中显示为4tensor，实际就一个变量
         tttttt = decoder_out.transpose(0,1)                           #交换第0维和第1维,把batch放在最前面
         decoder_output = self.decoder_output(tttttt)                  #进行最后的线性变化，还原回最初的原始数据
 
         # Alpha
-        alpha_hidden_1 = F.relu(self.alpha_hidden_1(hidden_state_vector))      #线性变换，relu
-        alpha_hidden_1_dropout = self.dropout(alpha_hidden_1)                  #dropout
-        alpha_hidden_2 = F.relu(self.alpha_hidden_2(alpha_hidden_1_dropout))   #线性变换，relu
-        alpha_out_1 = self.alpha_out_1(alpha_hidden_2)                         #线性变换.(此处之前是alpha_hidden_1，感觉简单了点，都可以试试)
+        alpha_hidden_1 = F.relu(self.alpha_hidden_1(hidden_state_vector))     #线性变换，relu
+        alpha_hidden_1_dropout = self.dropout(alpha_hidden_1)                 #dropout
+        #alpha_hidden_2 = F.relu(self.alpha_hidden_2(alpha_hidden_1_dropout)) #线性变换，relu
+        alpha_out_1 = self.alpha_out_1(alpha_hidden_1_dropout)                #线性变换.(此处之前是alpha_hidden_1，感觉简单了点，都可以试试)
         alpha_out_2 = self.alpha_out_2(alpha_out_1)
         alpha_output = alpha_out_2.squeeze()                                   #移除长度为1的维度，实际剩余就是长度为batch_size的一维数组，就是预测结果
 
@@ -142,6 +143,8 @@ class MVTAEBinaryModel(nn.Module):
         for i in tqdm(range(start_epoch, epochs), disable=not verbose):
             self.train()                                                          # set model to training mode
             loss_value = 0
+            loss_decoder_value = 0
+            loss_alpha_value = 0
             #weight_last = weight_last * eee
             for x_batch, y_batch in data_loader:
                 x = x_batch.to(self.device)
@@ -156,6 +159,8 @@ class MVTAEBinaryModel(nn.Module):
                 loss_alpha = self.loss_alpha(alpha_output, y)                     #y需要换掉，上涨为1，下跌为0
                 loss = loss_decoder*macro.weight_decoder + loss_alpha             #此处可以加一个超参数权重，需要寻找使alpha test loss最小的值
 
+                loss_decoder_value = loss_decoder_value + loss_decoder.item()*macro.weight_decoder
+                loss_alpha_value = loss_alpha_value + loss_alpha.item()
                 loss_value = loss_value + loss.item()
 
                 loss.backward()                                                   #计算梯度并保存在tensor中
@@ -169,12 +174,13 @@ class MVTAEBinaryModel(nn.Module):
                 torch.save(self.state_dict(), os.path.join(self.model_save_path, '{0}_best.pth'.format(self.model_name)))
             self.tb_writer.add_scalar('loss_value', loss_value, i)
             with open('loss_value.log', 'a') as flog:
-                flog.write('{0},{1},{2},{3},{4}\n'.format(datetime.utcnow(), i, loss_value, loss_decoder, loss_alpha))
+                flog.write('{0},{1},{2},{3},{4}\n'.format(datetime.utcnow(), i, loss_decoder_value, loss_alpha_value, loss_value))
 
             epoch_pass = i-self.best_epoch
-            if epoch_pass > 10000:               #过了200epoch还没有提升
+            if epoch_pass > 500:               #过了500epoch还没有提升
+                print("pass 500")
                 break
-            if loss_value < 0.00001:             #误差特别小
+            if loss_value < 0.0003:             #误差特别小
                 print("loss is too small")
                 break
 

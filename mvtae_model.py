@@ -66,7 +66,7 @@ class MVTAEModel(nn.Module):
         self.loss_decoder = nn.MSELoss()
         self.loss_alpha = nn.MSELoss()
         self.optimizer = optim.Adam(self.parameters(), lr=optim_lr, weight_decay=optim_weight_decay)    #初始化优化器，将模型参数填入
-
+        print("normal")
         print("打印参数")
         for name, param in self.named_parameters():
             print(name, "  ", param.requires_grad)

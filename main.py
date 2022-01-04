@@ -261,10 +261,10 @@ def run_super_params():
     fullpath = fullpath + '.csv'
 
     data = pd.read_csv(fullpath, header=0, index_col=0)
-    print(data)
+    #print(data)
     data.sort_values(by=FIELD_DATE, ascending=True, inplace=True)  #此处需要从前到后
     data = data.reset_index(drop=True)
-    print(data)
+    #print(data)
 
     if pycharm_use:
         raw_data_schematic(data)
@@ -361,7 +361,8 @@ def run_super_params():
     print('Model Parameters:\t%d' % calc_model_params(model))
     print('-'*30)
     print('Data Size:\t\t', len(dataset))
-    print('Batches per Epoch:\t', int(len(dataset)/tr_input_seq.shape[0]))
+    #print(tr_input_seq.shape)
+    #print('Batches per Epoch:\t', int(len(dataset)/tr_input_seq.shape[0]))    #这个好像错了
 
     best_epoch, best_loss = model.fit(data_loader, epochs=macro.epochs_size, start_epoch=0, verbose=True)
 
@@ -387,9 +388,12 @@ def run_stock(id_stock, dic_super_params):
         row = dic_super_params[index_sp]
         if not row:
             continue
+            
+        print("start run {0}".format(index_sp))
 
         macro.window_size        = int(row['window_size'])
         macro.hidden_vector_size = int(row['hidden_vector_size'])
+        print("hidden_vector_size {0}".format(macro.hidden_vector_size))
         macro.hidden_alpha_size  = int(row['hidden_alpha_size'])
         macro.batch_size         = int(row['batch_size'])
         macro.weight_decoder     = float(row['weight_decoder'])
@@ -401,8 +405,8 @@ def run_stock(id_stock, dic_super_params):
 
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
 
-        print(macro.weight_decoder)
-        print(macro.epochs_size)
+        #print(macro.weight_decoder)
+        #print(macro.epochs_size)
 
         if not os.path.exists("super_params_scores.csv"):
             df = pd.DataFrame(columns=['id_stock', 'index_sp', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'per_pp', 'per_nn', 'per_corr', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
@@ -425,6 +429,8 @@ def run_stock(id_stock, dic_super_params):
         dataframe = pd.read_csv("super_params_scores.csv")
         dataframe = dataframe.append([superParamsScores], ignore_index = True)
         dataframe.to_csv("super_params_scores.csv", index = False)
+        
+        print("end run {0}".format(index_sp))
 
 
 if __name__ == '__main__':
@@ -450,10 +456,13 @@ if __name__ == '__main__':
 
     stocks_list = pd.read_csv('stocks_list.csv',)
 
+    print("000333.sz")
+    
     run_stock("000333.sz", dic_super_params)
+    #run_stock("000002.sz", dic_super_params)
+    #run_stock("000333.sz", dic_super_params)
     
     '''
-    
     for i in range(0,100):
         print(i)
         stock_df = stocks_list.iloc[i]
@@ -462,7 +471,6 @@ if __name__ == '__main__':
         fullName = '{}.csv'.format(fullPath)
         if os.path.isfile(fullName):
             run_stock(ts_code, dic_super_params)
-    
     '''
 
 

@@ -52,3 +52,5 @@ sin2一个循环为1000，是否window_size设置为1000效果更好？
 考虑把weight_decoder改成一个岁epoch_size变化的值
 
 decoder的作用相当于添加了一个正则化项，避免参数跑的太偏
+
+weight_decay好霸道，0.001导致模型loss很快就处于震荡状态，训练不下去了

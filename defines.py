@@ -23,7 +23,7 @@ features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
 
 step_size = 1                 #窗口移动的步长
-split_ratio = 0.1             #窗口分割比例
+split_ratio = 0.8             #窗口分割比例
 float_precision_bits = 32
 bits_in_MB = 8e6
 
@@ -57,7 +57,7 @@ features_stock_0 = ['open','high','low','close','vol','amount','pre_close','chan
 
 features_stock_1 = ['open','high','low','close','vol']
 
-features_x = ['open','high','low','close','vol','amount','pre_close','change','pct_chg']
+features_x = ['open','high','low','close','vol','amount']
 
 feature_y = 'close'
 

@@ -1,2 +1,2 @@
 index,window_size,hidden_vector_size,hidden_alpha_size,batch_size,weight_decoder,epochs_size,dropout_p,lr,weight_decay
-1,100,256,64,64,0,100000,0,0.0001,0
+1,100,64,32,512,0,100000,0,0.0005,0
