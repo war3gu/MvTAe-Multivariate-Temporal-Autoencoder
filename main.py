@@ -397,6 +397,7 @@ def run_stock(id_stock, dic_super_params):
         macro.hidden_alpha_size  = int(row['hidden_alpha_size'])
         macro.batch_size         = int(row['batch_size'])
         macro.weight_decoder     = float(row['weight_decoder'])
+        macro.weight_alpha       = float(row['weight_alpha'])
         macro.epochs_size        = int(row['epochs_size'])
         macro.dropout_p          = row['dropout_p']
         macro.lr                 = row['lr']
@@ -456,14 +457,14 @@ if __name__ == '__main__':
 
     stocks_list = pd.read_csv('stocks_list.csv',)
 
-    print("000333.sz")
+    #print("000333.sz")
     
-    run_stock("000333.sz", dic_super_params)
+    #run_stock("000333.sz", dic_super_params)
     #run_stock("000002.sz", dic_super_params)
     #run_stock("000333.sz", dic_super_params)
     
-    '''
-    for i in range(0,100):
+
+    for i in range(0,10):
         print(i)
         stock_df = stocks_list.iloc[i]
         ts_code = stock_df.ts_code.lower()
@@ -471,7 +472,6 @@ if __name__ == '__main__':
         fullName = '{}.csv'.format(fullPath)
         if os.path.isfile(fullName):
             run_stock(ts_code, dic_super_params)
-    '''
 
 
 

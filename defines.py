@@ -23,7 +23,7 @@ features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
 
 step_size = 1                 #窗口移动的步长
-split_ratio = 0.8             #窗口分割比例
+split_ratio = 0.95             #窗口分割比例
 float_precision_bits = 32
 bits_in_MB = 8e6
 
@@ -38,6 +38,7 @@ id_market   = 'SSE'
 class macro():
     window_size = 100             #窗口的大小               可配置
     weight_decoder = 10           #                       可配置
+    weight_alpha   = 10           #                       可配置
     hidden_vector_size = 64       #                       可配置
     hidden_alpha_size = 16        #                       可配置
     batch_size = 1024             #                       可配置

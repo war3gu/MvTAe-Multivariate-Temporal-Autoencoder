@@ -140,6 +140,8 @@ class MVTAEBinaryModel(nn.Module):
         #eee = math.exp(ccc)
         #weight_last = macro.weight_decoder
 
+        len_data = len(data_loader.dataset)
+
         for i in tqdm(range(start_epoch, epochs), disable=not verbose):
             self.train()                                                          # set model to training mode
             loss_value = 0
@@ -157,10 +159,10 @@ class MVTAEBinaryModel(nn.Module):
 
                 loss_decoder = self.loss_decoder(decoder_output, x_inv)
                 loss_alpha = self.loss_alpha(alpha_output, y)                     #y需要换掉，上涨为1，下跌为0
-                loss = loss_decoder*macro.weight_decoder + loss_alpha             #此处可以加一个超参数权重，需要寻找使alpha test loss最小的值
+                loss = loss_decoder*macro.weight_decoder + loss_alpha*macro.weight_alpha
 
                 loss_decoder_value = loss_decoder_value + loss_decoder.item()*macro.weight_decoder
-                loss_alpha_value = loss_alpha_value + loss_alpha.item()
+                loss_alpha_value = loss_alpha_value + loss_alpha.item()*macro.weight_alpha
                 loss_value = loss_value + loss.item()
 
                 loss.backward()                                                   #计算梯度并保存在tensor中
@@ -180,13 +182,14 @@ class MVTAEBinaryModel(nn.Module):
             if epoch_pass > 500:               #过了500epoch还没有提升
                 print("pass 500")
                 break
-            if loss_value < 0.0003:             #误差特别小
+            if loss_value < 0.0001:             #误差特别小
                 print("loss is too small")
                 break
 
         print('Best epoch: {0} | loss {1}'.format(self.best_epoch, self.best_loss))
         sum_best_loss = self.best_loss          #一般性的方法是转化为ndarray再取值
-        return int(self.best_epoch), sum_best_loss
+        avg_best_loss = sum_best_loss/len_data  #误差取平均
+        return int(self.best_epoch), avg_best_loss
 
     def fit_weight(self, data_loader, epochs, start_epoch=0, verbose=False, decoder_weight=1, alpha_weight=0):
         flog_name = 'loss_{0}.log'.format(decoder_weight)

@@ -86,6 +86,6 @@ def download_daily(startIndex, endIndex):
 
 
 if __name__ == '__main__':
-    download_daily(0, 5)
+    download_daily(0, 10)
     # download_stocks_list()
     # download_all()
