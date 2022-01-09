@@ -19,6 +19,8 @@ torch.cuda.manual_seed_all(ID_SEED)
 
 type_model = "binary"
 
+time_model = "min5"    #min5,min1,day
+
 features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
 
@@ -49,7 +51,7 @@ class macro():
     id_stock    = '600196.sh'     #                       可配置
 
 
-index_list_super_params = [8,7,6,5,4,3,2,1]
+index_list_super_params = [3]
 
 
 FIELD_DATE = 'trade_date'
@@ -58,9 +60,11 @@ features_stock_0 = ['open','high','low','close','vol','amount','pre_close','chan
 
 features_stock_1 = ['open','high','low','close','vol']
 
-features_x = ['open','high','low','close','vol','amount']
+features_day = ['open','high','low','close','vol','amount']
 
-feature_y = 'close'
+features_x = [1,2,3,4,5,6]
+
+feature_y = 4
 
 #features_stock = features_stock_1
 

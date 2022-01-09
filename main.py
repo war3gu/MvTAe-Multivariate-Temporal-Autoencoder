@@ -383,6 +383,149 @@ def run_super_params():
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
         return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
 
+def run_super_params_minute(isFive):
+    # Load Data
+
+    path = "./line_convert"
+
+    if isFive == True:
+        path = os.path.join(path, "fzline")
+    else:
+        path = os.path.join(path, "minline")
+
+    ssss = macro.id_stock.split('.')
+
+    id_stock = ssss[1] + ssss[0]
+
+    fullpath = os.path.join(path, id_stock)
+
+    fullpath = fullpath + '.csv'
+
+    data = pd.read_csv(fullpath, header=None, index_col=0)
+    #print(data)
+    #data.sort_values(by=FIELD_DATE, ascending=True, inplace=True)  #此处需要从前到后
+    #data = data.reset_index(drop=True)
+    #print(data)
+
+    if pycharm_use:
+        raw_data_schematic(data)
+
+    raw_data_size = data.shape[0]
+    index_window_start = 0
+    index_window_end = index_window_start + macro.window_size
+    list_window = []
+    list_x = []
+    list_y = []
+
+    #raw_data_size = 300
+
+    while index_window_end < raw_data_size:                    #此处分析没有因为隔天把数据截断
+        data_x_temp = data[index_window_start:index_window_end]
+        data_y_temp = data.iloc[index_window_end]
+
+        oneWin = window(data_x_temp, data_y_temp)
+        oneWin.norm()
+        ret_x_df, ret_y_df = oneWin.get_norm_data_frame()
+
+        if binary_run:
+            ret_x_arr, ret_y_arr = oneWin.get_up_down_array()
+        else:
+            ret_x_arr, ret_y_arr = oneWin.get_norm_data_array()
+
+        list_x.append(ret_x_arr)
+        list_y.append(ret_y_arr)
+        list_window.append(oneWin)
+        index_window_start = index_window_start + step_size
+        index_window_end = index_window_start + macro.window_size
+
+    count_window = len(list_x)
+    count_train = int(np.ceil(count_window * split_ratio))
+    print("train count")
+    print(count_train)
+    count_test = count_window - count_train
+
+    #wwwwww = np.array(list_x)
+    #xxxxxx = wwwwww[:count_train]                 #array也是可以这样分割的
+    train_arr_x = np.array(list_x[:count_train])
+    train_arr_y = np.array(list_y[:count_train])
+    test_arr_x = np.array(list_x[count_train:])
+    test_arr_y = np.array(list_y[count_train:])
+    test_arr_window = np.array(list_window[count_train:])   #还原预测结果使用
+
+    tr_input_seq = train_arr_x
+    tr_data_windows_y = train_arr_y
+    #tr_data_size = tr_input_seq.shape[0]                   #3899
+
+    if pycharm_use:
+        norm_data_schematic(data, tr_input_seq, tr_data_windows_y)
+
+    data_x = from_numpy(tr_input_seq).float()              #``self.float()`` is equivalent to ``self.to(torch.float32)``
+    data_y = from_numpy(tr_data_windows_y).float()
+    dataset = Data(
+        x=data_x,
+        y=data_y
+    )
+
+    data_loader = DataLoader(
+        dataset=dataset,
+        batch_size=macro.batch_size,
+        shuffle = True
+    )
+
+    model = None
+    if binary_run:
+        model = MVTAEBinaryModel(model_save_path='./',
+                                 seq_len=tr_input_seq.shape[1],
+                                 in_data_dims=tr_input_seq.shape[2],
+                                 out_data_dims=tr_input_seq.shape[2],
+                                 model_name='mvtae_model',
+                                 hidden_vector_size=macro.hidden_vector_size,
+                                 hidden_alpha_size=macro.hidden_alpha_size,
+                                 dropout_p=macro.dropout_p,
+                                 optim_lr=macro.lr,
+                                 optim_weight_decay=macro.weight_decay)
+    else:
+        model = MVTAEModel(model_save_path='./',
+                           seq_len=tr_input_seq.shape[1],
+                           in_data_dims=tr_input_seq.shape[2],
+                           out_data_dims=tr_input_seq.shape[2],
+                           model_name='mvtae_model',
+                           hidden_vector_size=macro.hidden_vector_size,
+                           hidden_alpha_size=macro.hidden_alpha_size,
+                           dropout_p=macro.dropout_p,
+                           optim_lr=macro.lr,
+                           optim_weight_decay=macro.weight_decay)
+
+
+
+    print('-'*30)
+    print('Data Batch Size:\t%.2fMB' % calc_input_memory((macro.batch_size, tr_input_seq.shape[1], tr_input_seq.shape[2])))
+    print('Model Size:\t\t%.2fMB' % calc_model_memory(model))
+    print('Model Parameters:\t%d' % calc_model_params(model))
+    print('-'*30)
+    print('Data Size:\t\t', len(dataset))
+    #print(tr_input_seq.shape)
+    #print('Batches per Epoch:\t', int(len(dataset)/tr_input_seq.shape[0]))    #这个好像错了
+
+    best_epoch, best_loss = model.fit(data_loader, epochs=macro.epochs_size, start_epoch=0, verbose=True)
+
+    model.load_state_dict(torch.load('mvtae_model_best.pth'))
+
+    if pycharm_use:
+        hidden_state_verctor_visual(model, tr_input_seq)
+        decoder_visual(model, tr_input_seq)
+        alpha_train_visual(model, tr_input_seq, tr_data_windows_y)
+        alpha_test_visual(model, test_arr_x, test_arr_y)
+
+    if binary_run:
+        alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y)
+        mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alphaBinary_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
+        return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
+    else:
+        alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
+        mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
+        return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
+
 def run_stock(id_stock, dic_super_params):
     for index_sp in index_list_super_params:
         row = dic_super_params[index_sp]
@@ -404,7 +547,12 @@ def run_stock(id_stock, dic_super_params):
         macro.weight_decay       = row['weight_decay']
         macro.id_stock           = id_stock                              #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
 
-        mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
+        if time_model == 'day':
+            mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
+        elif time_model == 'min5':
+            mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params_minute(True)
+        else:
+            mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params_minute(False)
 
         #print(macro.weight_decoder)
         #print(macro.epochs_size)
@@ -461,7 +609,7 @@ if __name__ == '__main__':
     
     #run_stock("000006.sz", dic_super_params)
     #run_stock("000002.sz", dic_super_params)
-    run_stock("000506.sz", dic_super_params)
+    run_stock("000333.sz", dic_super_params)
     
  
     '''
