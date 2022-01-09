@@ -455,23 +455,35 @@ if __name__ == '__main__':
 
     dic_super_params = df_super_params.to_dict('index')
 
-    stocks_list = pd.read_csv('stocks_list.csv',)
-
-    #print("000333.sz")
     
-    #run_stock("000333.sz", dic_super_params)
+
+    print("777777777")
+    
+    #run_stock("000006.sz", dic_super_params)
     #run_stock("000002.sz", dic_super_params)
-    #run_stock("000333.sz", dic_super_params)
+    run_stock("000506.sz", dic_super_params)
     
-
-    for i in range(0,10):
-        print(i)
+ 
+    '''
+    stocks_list = pd.read_csv('stocks_list.csv',)
+    print("88888")
+    for i in range(640,680):                     
         stock_df = stocks_list.iloc[i]
         ts_code = stock_df.ts_code.lower()
+        print("index {0}".format(i))
+        print("run {0}".format(ts_code))
         fullPath = os.path.join(data_folder, ts_code)
         fullName = '{}.csv'.format(fullPath)
         if os.path.isfile(fullName):
             run_stock(ts_code, dic_super_params)
+    '''
+    
+    '''
+    for stock in stocks_list:
+        print("here4")
+        run_stock(stock, dic_super_params)
+    '''
+   
 
 
 

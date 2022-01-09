@@ -45,11 +45,11 @@ class macro():
     epochs_size = 10              #                       可配置
     dropout_p   = 0.1             #                       可配置
     lr          = 0.0001          #                       可配置
-    weight_decay= 0.1             #                       可配置
+    weight_decay= 0.8             #                       可配置
     id_stock    = '600196.sh'     #                       可配置
 
 
-index_list_super_params = [1]
+index_list_super_params = [8,7,6,5,4,3,2,1]
 
 
 FIELD_DATE = 'trade_date'
@@ -75,7 +75,28 @@ feature_y = 'close'
 
 #stock_arr_0 = ['000333.sz', '600196.sh', '600519.sh', '600104.sh']
 
-stocks_list = ['000333.sz', '600196.sh', '600519.sh', '600104.sh']
+
+
+stocks_list = ['000507.sz',
+               '000006.sz',
+               '000005.sz',
+               '000011.sz',
+               '000016.sz',
+               '000020.sz',
+               '000021.sz',
+               '000029.sz',
+               '000036.sz',
+               '000032.sz',
+               '000407.sz',
+               '000506.sz',
+               '000524.sz',
+               '000534.sz',
+               '000548.sz',
+               '000554.sz',
+               '000571.sz',
+               '000573.sz',
+               '000589.sz',
+               '000610.sz']
 
 data_folder = './data'
 

@@ -140,7 +140,7 @@ class MVTAEBinaryModel(nn.Module):
         #eee = math.exp(ccc)
         #weight_last = macro.weight_decoder
 
-        len_data = len(data_loader.dataset)
+        len_data = float(len(data_loader.dataset))/1000.0   #缩小1000倍，防止loss特别小
 
         for i in tqdm(range(start_epoch, epochs), disable=not verbose):
             self.train()                                                          # set model to training mode
@@ -179,8 +179,8 @@ class MVTAEBinaryModel(nn.Module):
                 flog.write('{0},{1},{2},{3},{4}\n'.format(datetime.utcnow(), i, loss_decoder_value, loss_alpha_value, loss_value))
 
             epoch_pass = i-self.best_epoch
-            if epoch_pass > 500:               #过了500epoch还没有提升
-                print("pass 500")
+            if epoch_pass > 100:               #过了100epoch还没有提升
+                print("pass 100")
                 break
             if loss_value < 0.0001:             #误差特别小
                 print("loss is too small")
@@ -188,7 +188,7 @@ class MVTAEBinaryModel(nn.Module):
 
         print('Best epoch: {0} | loss {1}'.format(self.best_epoch, self.best_loss))
         sum_best_loss = self.best_loss          #一般性的方法是转化为ndarray再取值
-        avg_best_loss = sum_best_loss/len_data  #误差取平均
+        avg_best_loss = float(sum_best_loss)/float(len_data)  #误差取平均
         return int(self.best_epoch), avg_best_loss
 
     def fit_weight(self, data_loader, epochs, start_epoch=0, verbose=False, decoder_weight=1, alpha_weight=0):
