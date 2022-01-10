@@ -19,7 +19,7 @@ torch.cuda.manual_seed_all(ID_SEED)
 
 type_model = "binary"
 
-time_model = "min5"    #min5,min1,day
+time_model = "min1"    #min5,min1,day
 
 features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
@@ -51,7 +51,7 @@ class macro():
     id_stock    = '600196.sh'     #                       可配置
 
 
-index_list_super_params = [3]
+index_list_super_params = [1,2,3,4]
 
 
 FIELD_DATE = 'trade_date'
@@ -81,7 +81,7 @@ feature_y = 4
 
 
 
-stocks_list = ['000507.sz',
+stocks_list_old = ['000507.sz',
                '000006.sz',
                '000005.sz',
                '000011.sz',
@@ -101,6 +101,27 @@ stocks_list = ['000507.sz',
                '000573.sz',
                '000589.sz',
                '000610.sz']
+
+stocks_list =['300142.sz',
+              '600009.sh',
+              '600104.sh',
+              '600188.sh',
+              '600196.sh',
+              '600276.sh',
+              '600436.sh',
+              '600507.sh',
+              '600519.sh',
+              '600660.sh',
+              '600771.sh',
+              '601318.sh',
+              '000001.sz',
+              '000063.sz',
+              '000333.sz',
+              '000651.sz',
+              '000858.sz',
+              '000963.sz',
+              '002415.sz',
+              '002714.sz']
 
 data_folder = './data'
 

@@ -605,11 +605,11 @@ if __name__ == '__main__':
 
     
 
-    print("777777777")
+    print("222222222")
     
     #run_stock("000006.sz", dic_super_params)
     #run_stock("000002.sz", dic_super_params)
-    run_stock("000333.sz", dic_super_params)
+    #run_stock("000333.sz", dic_super_params)
     
  
     '''
@@ -626,11 +626,10 @@ if __name__ == '__main__':
             run_stock(ts_code, dic_super_params)
     '''
     
-    '''
+    
     for stock in stocks_list:
-        print("here4")
+        print("here")
         run_stock(stock, dic_super_params)
-    '''
    
 
 
