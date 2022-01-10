@@ -401,7 +401,11 @@ def run_super_params_minute(isFive):
 
     fullpath = fullpath + '.csv'
 
-    data = pd.read_csv(fullpath, header=None, index_col=0)
+    data = pd.read_csv(fullpath, header=None, index_col=0)   #需要异常数据处理,有的为0
+
+    fill_zero_last(data, 5)
+    fill_zero_last(data, 6)
+
     #print(data)
     #data.sort_values(by=FIELD_DATE, ascending=True, inplace=True)  #此处需要从前到后
     #data = data.reset_index(drop=True)

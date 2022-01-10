@@ -29,7 +29,11 @@ def reverse_zscore(z, mu, sigma):
     x = (z*sigma)+mu
     return x
 
-
+def fill_zero_last(df, indexName):
+    dview = df[indexName].view()
+    for idx, val in enumerate(dview):
+        if val == 0:
+            dview[idx] = dview[idx-1]
 
 
 
