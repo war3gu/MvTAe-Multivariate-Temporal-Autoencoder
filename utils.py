@@ -1,14 +1,23 @@
 
 
 import numpy as np
+import math
 from defines import *
 
+
+def set_1(value):
+    return 1
 
 def norm(data, hi=None, lo=None):          #hi,lo是外部输入的最大最小值，更高优先级（在Python中，None、空列表[]、空字典{}、空元组()、0等一系列代表空和无的对象会被转换成False）
     hi = np.max(data) if not hi else hi    #hi如果等于False，就从data中找最大值（默认是None，就等于False）。否则执行hi=hi
     lo = np.min(data) if not lo else lo
     if hi-lo == 0:
-        return 0, hi, lo
+        if isinstance(data, pd.Series):
+            rrr = data.copy()
+            rrr = rrr.apply(set_1)
+            return rrr, hi, lo
+        else:
+            return 1, hi, lo
     y = (data-lo)/(hi-lo)
     return y, hi, lo
 
@@ -32,7 +41,7 @@ def reverse_zscore(z, mu, sigma):
 def fill_zero_last(df, indexName):
     dview = df[indexName].view()
     for idx, val in enumerate(dview):
-        if val == 0:
+        if val == 0 or math.isnan(val):
             dview[idx] = dview[idx-1]
 
 

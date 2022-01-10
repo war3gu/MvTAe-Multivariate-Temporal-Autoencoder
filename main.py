@@ -403,6 +403,10 @@ def run_super_params_minute(isFive):
 
     data = pd.read_csv(fullpath, header=None, index_col=0)   #需要异常数据处理,有的为0
 
+    fill_zero_last(data, 1)
+    fill_zero_last(data, 2)
+    fill_zero_last(data, 3)
+    fill_zero_last(data, 4)
     fill_zero_last(data, 5)
     fill_zero_last(data, 6)
 
@@ -421,7 +425,7 @@ def run_super_params_minute(isFive):
     list_x = []
     list_y = []
 
-    #raw_data_size = 300
+    #raw_data_size = 8500
 
     while index_window_end < raw_data_size:                    #此处分析没有因为隔天把数据截断
         data_x_temp = data[index_window_start:index_window_end]
