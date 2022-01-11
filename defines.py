@@ -51,7 +51,7 @@ class macro():
     id_stock    = '600196.sh'     #                       可配置
 
 
-index_list_super_params = [1,2,3,4]
+index_list_super_params = [13,14,15,16]
 
 
 FIELD_DATE = 'trade_date'
@@ -102,9 +102,7 @@ stocks_list_old = ['000507.sz',
                '000589.sz',
                '000610.sz']
 
-stocks_list =['300142.sz',
-              '600009.sh',
-              '600104.sh',
+stocks_list =['600104.sh',
               '600188.sh',
               '600196.sh',
               '600276.sh',
@@ -121,7 +119,9 @@ stocks_list =['300142.sz',
               '000858.sz',
               '000963.sz',
               '002415.sz',
-              '002714.sz']
+              '002714.sz',
+              '300142.sz',
+              '600009.sh']
 
 data_folder = './data'
 

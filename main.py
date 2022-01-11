@@ -613,7 +613,7 @@ if __name__ == '__main__':
 
     
 
-    print("222222222")
+    print("77777777777")
     
     #run_stock("000006.sz", dic_super_params)
     #run_stock("000002.sz", dic_super_params)
