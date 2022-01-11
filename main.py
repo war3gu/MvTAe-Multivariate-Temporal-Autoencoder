@@ -152,6 +152,9 @@ def alpha_train_scores(model, tr_input_seq, tr_data_windows_y):
     print('R²:\t', r2_score(tr_data_windows_y, alpha_output))
     
 def alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y):
+    
+    print("train count {0}".format(tr_data_windows_y.shape[0]))
+    
     model.eval()
     _,_ , alpha_output = model(from_numpy(tr_input_seq).float())
     alpha_output = alpha_output.flatten().detach().cpu().numpy()
@@ -162,7 +165,7 @@ def alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y):
 
     lll = lambda x: int(x > 0.5)
     mmm = list(map(lll, alpha_output))
-    cm = confusion_matrix(tr_data_windows_y, mmm)
+    cm = confusion_matrix(tr_data_windows_y, mmm, labels=[0,1])
     print(cm)
     #plot_confusion_matrix(cm, ['Down', 'Up'], normalize=True, title="Confusion Matrix")
 
@@ -171,6 +174,15 @@ def alphaBinary_train_scores(model, tr_input_seq, tr_data_windows_y):
     #true positives is:math:`C_{1,1}`
     #false positives is :math:`C_{0,1}`.
     tn, fp, fn, tp = cm.ravel()
+    
+    if tp+fn == 0:    #修正一下，防止除以0
+        tp = 1
+        fn = 1
+        print("fix tp fn")
+    if tn+fp == 0:
+        tn = 1
+        fp = 1
+        print("fix tn fp")
 
     per_pp = tp/(tp+fn)   #TPR
     per_nn = tn/(tn+fp)   #TNR
@@ -228,17 +240,29 @@ def alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
     return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr
 
 def alphaBinary_test_scores(model, test_arr_x, test_arr_y, test_arr_window):  #
+    
+    print("test count {0}".format(test_arr_y.shape[0]))
+    
     model.eval()
     _,_ , alpha_output = model(from_numpy(test_arr_x).float())
     alpha_output = alpha_output.flatten().detach().cpu().numpy()
 
     lll = lambda x: int(x > 0.5)
     mmm = list(map(lll, alpha_output))
-    cm = confusion_matrix(test_arr_y, mmm)
+    cm = confusion_matrix(test_arr_y, mmm, labels=[0,1])
     print(cm)
     #plot_confusion_matrix(cm, ['Down', 'Up'], normalize=True, title="Confusion Matrix")
 
     tn, fp, fn, tp = cm.ravel()
+    
+    if tp+fn == 0:    #修正一下，防止除以0
+        tp = 1
+        fn = 1
+        print("fix tp fn")
+    if tn+fp == 0:
+        tn = 1
+        fp = 1
+        print("fix tn fp")
 
     per_pp = tp/(tp+fn)   #TPR
     per_nn = tn/(tn+fp)   #TNR
@@ -297,8 +321,8 @@ def run_super_params():
 
     count_window = len(list_x)
     count_train = int(np.ceil(count_window * split_ratio))
-    print("train count")
-    print(count_train)
+    #print("train count")
+    #print(count_train)
     count_test = count_window - count_train
 
     #wwwwww = np.array(list_x)
@@ -448,8 +472,8 @@ def run_super_params_minute(isFive):
 
     count_window = len(list_x)
     count_train = int(np.ceil(count_window * split_ratio))
-    print("train count")
-    print(count_train)
+    #print("train count")
+    #print(count_train)
     count_test = count_window - count_train
 
     #wwwwww = np.array(list_x)
@@ -613,7 +637,7 @@ if __name__ == '__main__':
 
     
 
-    print("77777777777")
+    print("999999999")
     
     #run_stock("000006.sz", dic_super_params)
     #run_stock("000002.sz", dic_super_params)
