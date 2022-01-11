@@ -460,7 +460,7 @@ def run_super_params_minute(isFive):
         ret_x_df, ret_y_df = oneWin.get_norm_data_frame()
 
         if binary_run:
-            ret_x_arr, ret_y_arr = oneWin.get_up_down_array()
+            ret_x_arr, ret_y_arr = oneWin.get_up_down_array()   #window_size为0，ret_x_arr全是1，样本就集中在一个点，这样是不行的
         else:
             ret_x_arr, ret_y_arr = oneWin.get_norm_data_array()
 
@@ -637,7 +637,7 @@ if __name__ == '__main__':
 
     
 
-    print("999999999")
+    print("0000000000000000000000000")
     
     #run_stock("000006.sz", dic_super_params)
     #run_stock("000002.sz", dic_super_params)

@@ -25,7 +25,7 @@ features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
 
 step_size = 1                 #窗口移动的步长
-split_ratio = 0.95             #窗口分割比例
+split_ratio = 0.8             #窗口分割比例
 float_precision_bits = 32
 bits_in_MB = 8e6
 
@@ -51,7 +51,7 @@ class macro():
     id_stock    = '600196.sh'     #                       可配置
 
 
-index_list_super_params = [13]
+index_list_super_params = [14]  #14,15,16轮流试试  #13的window_size为1，必须抛弃，而且window_size可以肯定不是最好的window_size，信息量明显不够
 
 
 FIELD_DATE = 'trade_date'

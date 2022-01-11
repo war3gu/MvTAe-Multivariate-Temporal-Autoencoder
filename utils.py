@@ -17,7 +17,7 @@ def norm(data, hi=None, lo=None):          #hi,lo是外部输入的最大最小�
             rrr = rrr.apply(set_1)
             return rrr, hi, lo
         else:
-            return 1, hi, lo
+            return data/hi, hi, lo
     y = (data-lo)/(hi-lo)
     return y, hi, lo
 
