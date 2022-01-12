@@ -434,6 +434,17 @@ def run_super_params_minute(isFive):
     fill_zero_last(data, 5)
     fill_zero_last(data, 6)
 
+    #可能还需要对close取若干天的均线
+
+    if log_price:
+        print("start log data")
+        log_data(data, 1)
+        log_data(data, 2)
+        log_data(data, 3)
+        log_data(data, 4)
+        log_data(data, 5)
+        log_data(data, 6)
+
     #print(data)
     #data.sort_values(by=FIELD_DATE, ascending=True, inplace=True)  #此处需要从前到后
     #data = data.reset_index(drop=True)
@@ -639,7 +650,7 @@ if __name__ == '__main__':
 
     print("0000000000000000000000000")
     
-    #run_stock("000006.sz", dic_super_params)
+    run_stock("600507.sh", dic_super_params)
     #run_stock("000002.sz", dic_super_params)
     #run_stock("000333.sz", dic_super_params)
     
@@ -658,10 +669,11 @@ if __name__ == '__main__':
             run_stock(ts_code, dic_super_params)
     '''
     
-    
+    '''
     for stock in stocks_list:
         print("here")
         run_stock(stock, dic_super_params)
+    '''
    
 
 

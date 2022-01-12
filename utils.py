@@ -3,23 +3,35 @@
 import numpy as np
 import math
 from defines import *
+import numpy as np
 
 
 def set_1(value):
     return 1
 
-def norm(data, hi=None, lo=None):          #hi,lo是外部输入的最大最小值，更高优先级（在Python中，None、空列表[]、空字典{}、空元组()、0等一系列代表空和无的对象会被转换成False）
-    hi = np.max(data) if not hi else hi    #hi如果等于False，就从data中找最大值（默认是None，就等于False）。否则执行hi=hi
-    lo = np.min(data) if not lo else lo
+def norm_x(data):          #hi,lo是外部输入的最大最小值，更高优先级（在Python中，None、空列表[]、空字典{}、空元组()、0等一系列代表空和无的对象会被转换成False）
+    hi = np.max(data)
+    lo = np.min(data)
     if hi-lo == 0:
-        if isinstance(data, pd.Series):
-            rrr = data.copy()
-            rrr = rrr.apply(set_1)
-            return rrr, hi, lo
-        else:
-            return data/hi, hi, lo
-    y = (data-lo)/(hi-lo)
-    return y, hi, lo
+        rrr = data.copy()
+        rrr = rrr.apply(set_1)
+        return rrr
+    else:
+        vvv = (data-lo)/(hi-lo)
+        return vvv
+
+def norm_y(data, hi, lo):
+    if hi-lo == 0:
+        return data/hi
+    else:
+        vvv = (data-lo)/(hi-lo)
+        return vvv
+
+
+def get_hi_lo(data):
+    hi = np.max(data)
+    lo = np.min(data)
+    return hi, lo
 
 def reverse_norm(y, hi, lo):
     x = y*(hi-lo)+lo
@@ -43,6 +55,10 @@ def fill_zero_last(df, indexName):
     for idx, val in enumerate(dview):
         if val == 0 or math.isnan(val):
             dview[idx] = dview[idx-1]
+
+def log_data(df, indexName):
+    dcopy = df[indexName].copy()
+    df[indexName] = np.log(dcopy)
 
 
 

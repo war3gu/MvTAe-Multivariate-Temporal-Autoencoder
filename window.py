@@ -28,10 +28,9 @@ class window:
     def norm(self):
         self.norm_x = pd.DataFrame()
         for j, feature in enumerate(features_x):
-            ret_x, _hi, _lo = norm(self.data_x[feature][:])
-            self.norm_x[feature] = ret_x
-        _, hi, lo = norm(self.data_x[feature_y][:])                #此处使用norm函数返回的最大最小
-        self.norm_y = norm(self.data_y[feature_y], hi, lo)[0]                #xxx是tuple（list列表和tuple元组的“技术差异”是，list列表是可变的，而tuple元组是不可变的。这是在 Python 语言中二者唯一的差别。(所以tuple大多数情况比list快)）
+            self.norm_x[feature] = norm_x(self.data_x[feature][:])
+        hi, lo = get_hi_lo(self.data_x[feature_y][:])                #此处使用norm函数返回的最大最小
+        self.norm_y = norm_y(self.data_y[feature_y], hi, lo)                #xxx是tuple（list列表和tuple元组的“技术差异”是，list列表是可变的，而tuple元组是不可变的。这是在 Python 语言中二者唯一的差别。(所以tuple大多数情况比list快)）
 
     def get_norm_data_frame(self):
         return self.norm_x, self.norm_y
@@ -48,7 +47,7 @@ class window:
             return np.array(self.norm_x), 0
 
     def get_raw_data(self, norm_pre_y):                           #还原数据
-        _, hi, lo = norm(self.data_x[feature_y][:])
+        hi, lo = get_hi_lo(self.data_x[feature_y][:])
         raw_pre_y = reverse_norm(norm_pre_y, hi, lo)
         y_raw_1   = self.data_x[feature_y].iloc[-1]
         #ffff      = self.data_x[feature_y]
