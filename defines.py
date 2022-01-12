@@ -19,7 +19,7 @@ torch.cuda.manual_seed_all(ID_SEED)
 
 type_model = "binary"
 
-log_price = True      #属性是否使用对数
+
 
 time_model = "min1"    #min5,min1,day
 
@@ -51,9 +51,10 @@ class macro():
     lr          = 0.0001          #                       可配置
     weight_decay= 0.8             #                       可配置
     id_stock    = '600196.sh'     #                       可配置
+    log_price   = True            #                       可配置      属性是否使用对数
 
 
-index_list_super_params = [15]  #14,15,16轮流试试  #13的window_size为1，必须抛弃，而且window_size可以肯定不是最好的window_size，信息量明显不够
+index_list_super_params = [17]  #14,15,16轮流试试  #13的window_size为1，必须抛弃，而且window_size可以肯定不是最好的window_size，信息量明显不够
 
 
 FIELD_DATE = 'trade_date'

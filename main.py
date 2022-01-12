@@ -436,7 +436,7 @@ def run_super_params_minute(isFive):
 
     #可能还需要对close取若干天的均线
 
-    if log_price:
+    if macro.log_price:
         print("start log data")
         log_data(data, 1)
         log_data(data, 2)
@@ -588,7 +588,9 @@ def run_stock(id_stock, dic_super_params):
         macro.dropout_p          = row['dropout_p']
         macro.lr                 = row['lr']
         macro.weight_decay       = row['weight_decay']
+        macro.log_price          = int(row['log_price'])
         macro.id_stock           = id_stock                              #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
+
 
         if time_model == 'day':
             mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
