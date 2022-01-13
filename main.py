@@ -32,6 +32,8 @@ import argparse
 
 import os
 
+import pandas_ta as ta
+
 print(torch.__version__)
 print(torch.cuda.is_available())
 
@@ -434,8 +436,11 @@ def run_super_params_minute(isFive):
     fill_zero_last(data, 5)
     fill_zero_last(data, 6)
 
+    data = expand_data(data)                     #丰富数据,同时把列名给改了
+
     #可能还需要对close取若干天的均线
 
+    '''
     if macro.log_price:
         print("start log data")
         log_data(data, 1)
@@ -444,6 +449,7 @@ def run_super_params_minute(isFive):
         log_data(data, 4)
         log_data(data, 5)
         log_data(data, 6)
+    '''
 
     #print(data)
     #data.sort_values(by=FIELD_DATE, ascending=True, inplace=True)  #此处需要从前到后
@@ -568,6 +574,36 @@ def run_super_params_minute(isFive):
         alpha_train_scores(model, tr_input_seq, tr_data_windows_y)
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
         return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
+
+def expand_data(data):
+    #data.set_index(pd.DatetimeIndex(data["Index"]), inplace=True)
+    # Calculate Returns and append to the df DataFrame
+    data = data.rename(columns={1: "open", 2: "high", 3: "low", 4: "close", 5: "amount", 6: "volume"})
+    data.ta.log_return(cumulative=True, append=True)
+    data.ta.percent_return(cumulative=True, append=True)
+    data.ta.ema(length=60, append=True, fillna=0)
+    data.ta.sma(length=60, append=True, fillna=0)
+    data.ta.macd(fast=12, slow=26, append=True, fillna=0)
+
+    #sma
+    #ema
+    #macd
+
+    # New Columns with results
+    #data.columns
+    # Take a peek
+    #data.tail()
+
+    # Create a DataFrame so 'ta' can be used.
+    df = pd.DataFrame()
+    # Help about this, 'ta', extension
+    #help(df.ta)
+    # List of all indicators
+    #df.ta.indicators()
+
+
+    return data
+
 
 def run_stock(id_stock, dic_super_params):
     for index_sp in index_list_super_params:

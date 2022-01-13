@@ -28,7 +28,10 @@ class window:
     def norm(self):
         self.norm_x = pd.DataFrame()
         for j, feature in enumerate(features_x):
-            self.norm_x[feature] = norm_x(self.data_x[feature][:])
+            if feature in features_x_norm:
+                self.norm_x[feature] = norm_x(self.data_x[feature][:])
+            else:
+                self.norm_x[feature] = self.data_x[feature][:]
         hi, lo = get_hi_lo(self.data_x[feature_y][:])                #此处使用norm函数返回的最大最小
         self.norm_y = norm_y(self.data_y[feature_y], hi, lo)                #xxx是tuple（list列表和tuple元组的“技术差异”是，list列表是可变的，而tuple元组是不可变的。这是在 Python 语言中二者唯一的差别。(所以tuple大多数情况比list快)）
 

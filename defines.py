@@ -65,9 +65,12 @@ features_stock_1 = ['open','high','low','close','vol']
 
 features_day = ['open','high','low','close','vol','amount']
 
-features_x = [1,2,3,4,5,6]
+features_x_norm = ['open','high','low','close']
 
-feature_y = 4
+features_x = ['open','high','low','close', 'amount', 'volume', 'CUMLOGRET_1',  'CUMPCTRET_1', 'EMA_60', 'SMA_60', 'MACD_12_26_9', 'MACDh_12_26_9']
+
+
+feature_y = 'close'
 
 #features_stock = features_stock_1
 
