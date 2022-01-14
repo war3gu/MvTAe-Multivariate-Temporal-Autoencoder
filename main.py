@@ -466,7 +466,7 @@ def run_super_params_minute(isFive):
     list_x = []
     list_y = []
 
-    #raw_data_size = 8500
+    #raw_data_size = 1000
 
     while index_window_end < raw_data_size:                    #此处分析没有因为隔天把数据截断
         data_x_temp = data[index_window_start:index_window_end]
@@ -584,6 +584,8 @@ def expand_data(data):
     data.ta.ema(length=60, append=True, fillna=0)
     data.ta.sma(length=60, append=True, fillna=0)
     data.ta.macd(fast=12, slow=26, append=True, fillna=0)
+    data.ta.rsi(length=60, append=True, fillna=0)
+    data.ta.kdj(length=60, append=True, fillna=0)
 
     #sma
     #ema
