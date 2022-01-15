@@ -1,5 +1,4 @@
-
-
+import math
 
 import numpy as np
 import pandas as pd
@@ -13,12 +12,11 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torch import nn, from_numpy
 
-
 from window import window
 
-#from defines import *
+
 from utils   import *
-#from defines import *
+from defines import *
 
 from mvtae_model import MVTAEModel
 from mvtaeBinary_model import MVTAEBinaryModel
@@ -69,7 +67,7 @@ def norm_data_schematic(data, tr_input_seq, tr_data_windows_y):
 
     plt.subplot(2,1,2)              # test prediction Y with visual
     p = [None for x in range(9)]
-    xxxx = data[feature_y][:macro.window_size]             #取得第一个窗口的所有combined
+    xxxx = data[macroFeature.feature_y][:macro.window_size]             #取得第一个窗口的所有combined
     dddd = norm(xxxx)[0]                              #归一化所有combined
     p.append(dddd.iloc[-1])                           #最后一个归一化的combined加入p（data中索引是window_size-1）
     p.append(tr_data_windows_y[0])                    #归一化的y加入p（data中索引是window_size）
@@ -409,7 +407,7 @@ def run_super_params():
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
         return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
 
-def run_super_params_minute(isFive):
+def run_super_params_minute(isFive, row_ta):
     # Load Data
 
     path = "./line_convert"
@@ -436,7 +434,7 @@ def run_super_params_minute(isFive):
     fill_zero_last(data, 5)
     fill_zero_last(data, 6)
 
-    data = expand_data(data)                     #丰富数据,同时把列名给改了
+    data = expand_data(data, row_ta)                     #丰富数据,同时把列名给改了
 
     #可能还需要对close取若干天的均线
 
@@ -466,7 +464,7 @@ def run_super_params_minute(isFive):
     list_x = []
     list_y = []
 
-    #raw_data_size = 1000
+    raw_data_size = 1000
 
     while index_window_end < raw_data_size:                    #此处分析没有因为隔天把数据截断
         data_x_temp = data[index_window_start:index_window_end]
@@ -575,21 +573,46 @@ def run_super_params_minute(isFive):
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
         return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
 
-def expand_data(data):
+def expand_int_array(data, row_ta, attri, func):
+    if not row_ta[attri]==0 and not row_ta[attri]=='0':
+        arr = str(row_ta[attri]).split(';')
+        for vvv in arr:
+            vvv = int(vvv)
+            func(length=vvv, append=True, fillna=0)
+
+
+def expand_data(data, row_ta):
     #data.set_index(pd.DatetimeIndex(data["Index"]), inplace=True)
     # Calculate Returns and append to the df DataFrame
     data = data.rename(columns={1: "open", 2: "high", 3: "low", 4: "close", 5: "amount", 6: "volume"})
+
+    if 7 in data.columns:
+        data = data.drop([7], axis=1)
+
+    #for i in features_x:
+        #print(i)
+
     data.ta.log_return(cumulative=True, append=True)
     data.ta.percent_return(cumulative=True, append=True)
-    data.ta.ema(length=60, append=True, fillna=0)
-    data.ta.sma(length=60, append=True, fillna=0)
-    data.ta.macd(fast=12, slow=26, append=True, fillna=0)
-    data.ta.rsi(length=60, append=True, fillna=0)
-    data.ta.kdj(length=60, append=True, fillna=0)
 
-    #sma
-    #ema
-    #macd
+
+    expand_int_array(data, row_ta, 'sma', data.ta.sma)
+    expand_int_array(data, row_ta, 'ema', data.ta.ema)
+    expand_int_array(data, row_ta, 'rsi', data.ta.rsi)
+    expand_int_array(data, row_ta, 'kdj', data.ta.kdj)
+
+    #macd_v = int()
+    if not row_ta['macd']==0 and not row_ta['macd']=='0':
+        macd_array = str(row_ta['macd']).split(':')
+        fast = int(macd_array[0])
+        slow = int(macd_array[1])
+        data.ta.macd(fast=fast, slow=slow, append=True, fillna=0)
+
+    data = data.fillna(0)
+
+    macroFeature.features_x = list(data.columns.values)
+
+    print("features_x  {0}".format(macroFeature.features_x))
 
     # New Columns with results
     #data.columns
@@ -607,62 +630,64 @@ def expand_data(data):
     return data
 
 
-def run_stock(id_stock, dic_super_params):
+def run_stock(id_stock, dic_super_params, dic_super_ta_params):
     for index_sp in index_list_super_params:
         row = dic_super_params[index_sp]
         if not row:
             continue
-            
         print("start run {0}".format(index_sp))
 
-        macro.window_size        = int(row['window_size'])
-        macro.hidden_vector_size = int(row['hidden_vector_size'])
-        print("hidden_vector_size {0}".format(macro.hidden_vector_size))
-        macro.hidden_alpha_size  = int(row['hidden_alpha_size'])
-        macro.batch_size         = int(row['batch_size'])
-        macro.weight_decoder     = float(row['weight_decoder'])
-        macro.weight_alpha       = float(row['weight_alpha'])
-        macro.epochs_size        = int(row['epochs_size'])
-        macro.dropout_p          = row['dropout_p']
-        macro.lr                 = row['lr']
-        macro.weight_decay       = row['weight_decay']
-        macro.log_price          = int(row['log_price'])
-        macro.id_stock           = id_stock                              #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
+        for index_sp_ta in index_list_super_ta_params:
+            row_ta = dic_super_ta_params[index_sp_ta]
+            if not row_ta:
+                continue
+            macro.window_size        = int(row['window_size'])
+            macro.hidden_vector_size = int(row['hidden_vector_size'])
+            print("hidden_vector_size {0}".format(macro.hidden_vector_size))
+            macro.hidden_alpha_size  = int(row['hidden_alpha_size'])
+            macro.batch_size         = int(row['batch_size'])
+            macro.weight_decoder     = float(row['weight_decoder'])
+            macro.weight_alpha       = float(row['weight_alpha'])
+            macro.epochs_size        = int(row['epochs_size'])
+            macro.dropout_p          = row['dropout_p']
+            macro.lr                 = row['lr']
+            macro.weight_decay       = row['weight_decay']
+            macro.log_price          = int(row['log_price'])
+            macro.id_stock           = id_stock                              #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
 
 
-        if time_model == 'day':
-            mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
-        elif time_model == 'min5':
-            mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params_minute(True)
-        else:
-            mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params_minute(False)
+            if time_model == 'day':
+                mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params()     #把结果写入文件
+            elif time_model == 'min5':
+                mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params_minute(True, row_ta)
+            else:
+                mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss = run_super_params_minute(False, row_ta)
 
-        #print(macro.weight_decoder)
-        #print(macro.epochs_size)
+            #print(macro.weight_decoder)
+            #print(macro.epochs_size)
+            if not os.path.exists("super_params_scores.csv"):
+                df = pd.DataFrame(columns=['id_stock', 'index_sp', 'index_sp_ta', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'per_pp', 'per_nn', 'per_corr', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
+                df.to_csv("super_params_scores.csv", index = False)
 
-        if not os.path.exists("super_params_scores.csv"):
-            df = pd.DataFrame(columns=['id_stock', 'index_sp', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'per_pp', 'per_nn', 'per_corr', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
-            df.to_csv("super_params_scores.csv", index = False)
-
-        superParamsScores = {}
-        superParamsScores['index_sp']            = index_sp
-        superParamsScores['mse']                 = round(mse, 4)
-        superParamsScores['mae']                 = round(mae, 4)
-        superParamsScores['r2']                  = round(r2, 4)
-        superParamsScores['dev_per_mean']        = round(dev_per_mean, 4)
-        superParamsScores['dev_per_std']         = round(dev_per_std, 4)
-        superParamsScores['per_pp']              = round(per_pp, 4)
-        superParamsScores['per_nn']              = round(per_nn, 4)
-        superParamsScores['per_corr']            = round(per_corr, 4)
-        superParamsScores['epochs']              = macro.epochs_size        #
-        superParamsScores['epoch_best']          = best_epoch               #
-        superParamsScores['epoch_best_loss']     = round(best_loss, 4)
-        superParamsScores['id_stock']            = macro.id_stock           #
-        dataframe = pd.read_csv("super_params_scores.csv")
-        dataframe = dataframe.append([superParamsScores], ignore_index = True)
-        dataframe.to_csv("super_params_scores.csv", index = False)
-        
-        print("end run {0}".format(index_sp))
+            superParamsScores = {}
+            superParamsScores['index_sp']            = index_sp
+            superParamsScores['index_sp_ta']         = index_sp_ta
+            superParamsScores['mse']                 = round(mse, 4)
+            superParamsScores['mae']                 = round(mae, 4)
+            superParamsScores['r2']                  = round(r2, 4)
+            superParamsScores['dev_per_mean']        = round(dev_per_mean, 4)
+            superParamsScores['dev_per_std']         = round(dev_per_std, 4)
+            superParamsScores['per_pp']              = round(per_pp, 4)
+            superParamsScores['per_nn']              = round(per_nn, 4)
+            superParamsScores['per_corr']            = round(per_corr, 4)
+            superParamsScores['epochs']              = macro.epochs_size        #
+            superParamsScores['epoch_best']          = best_epoch               #
+            superParamsScores['epoch_best_loss']     = round(best_loss, 4)
+            superParamsScores['id_stock']            = macro.id_stock           #
+            dataframe = pd.read_csv("super_params_scores.csv")
+            dataframe = dataframe.append([superParamsScores], ignore_index = True)
+            dataframe.to_csv("super_params_scores.csv", index = False)
+            print("end run {0}".format(index_sp))
 
 
 if __name__ == '__main__':
@@ -686,13 +711,17 @@ if __name__ == '__main__':
 
     dic_super_params = df_super_params.to_dict('index')
 
+    df_super_ta_params = pd.read_csv('super_ta_params.csv', index_col = 'index', header=0)
+
+    dic_super_ta_params = df_super_ta_params.to_dict('index')
+
     
 
     print("0000000000000000000000000")
     
-    run_stock("600507.sh", dic_super_params)
-    #run_stock("000002.sz", dic_super_params)
-    #run_stock("000333.sz", dic_super_params)
+    run_stock("600507.sh", dic_super_params, dic_super_ta_params)
+    #run_stock("000002.sz", dic_super_params, dic_super_ta_params)
+    #run_stock("000333.sz", dic_super_params, dic_super_ta_params)
     
  
     '''
@@ -706,13 +735,13 @@ if __name__ == '__main__':
         fullPath = os.path.join(data_folder, ts_code)
         fullName = '{}.csv'.format(fullPath)
         if os.path.isfile(fullName):
-            run_stock(ts_code, dic_super_params)
+            run_stock(ts_code, dic_super_params, dic_super_ta_params)
     '''
     
     '''
     for stock in stocks_list:
         print("here")
-        run_stock(stock, dic_super_params)
+        run_stock(stock, dic_super_params, dic_super_ta_params)
     '''
    
 

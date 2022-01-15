@@ -54,7 +54,9 @@ class macro():
     log_price   = True            #                       可配置      属性是否使用对数
 
 
-index_list_super_params = [16]  #14,15,16轮流试试  #13的window_size为1，必须抛弃，而且window_size可以肯定不是最好的window_size，信息量明显不够
+index_list_super_params = [15,16]  #14,15,16轮流试试  #13的window_size为1，必须抛弃，而且window_size可以肯定不是最好的window_size，信息量明显不够
+
+index_list_super_ta_params = [1,2]
 
 
 FIELD_DATE = 'trade_date'
@@ -65,15 +67,13 @@ features_stock_1 = ['open','high','low','close','vol']
 
 features_day = ['open','high','low','close','vol','amount']
 
-features_x_norm = ['open','high','low','close', 'amount', 'volume']
-
-features_x = ['open', 'high', 'low', 'close', 'amount', 'volume',
-              'CUMLOGRET_1',  'CUMPCTRET_1', 'EMA_60', 'SMA_60',
-              'MACD_12_26_9', 'MACDh_12_26_9', 'RSI_60',
-              'K_60_3', 'D_60_3', 'J_60_3']
-
-
-feature_y = 'close'
+class macroFeature:
+    features_x_norm = ['open','high','low','close', 'amount', 'volume']
+    features_x = ['open', 'high', 'low', 'close', 'amount', 'volume']
+              #'CUMLOGRET_1',  'CUMPCTRET_1', 'EMA_60', 'SMA_60',
+              #'MACD_12_26_9', 'MACDh_12_26_9', 'RSI_60',
+              #'K_60_3', 'D_60_3', 'J_60_3']
+    feature_y = 'close'
 
 #features_stock = features_stock_1
 
