@@ -4,6 +4,7 @@ import numpy as np
 import math
 from defines import *
 import numpy as np
+import os
 
 
 def set_1(value):
@@ -98,3 +99,13 @@ class Data(Dataset):
 
     def __len__(self):
         return len(self.x)
+
+if __name__ == '__main__':
+    print("haha")
+    if not os.path.exists("super_params_scores_sort.csv"):
+        df = pd.DataFrame(columns=['id_stock', 'index_sp', 'index_sp_ta', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'per_pp', 'per_nn', 'per_corr', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
+        df.to_csv("super_params_scores_sort.csv", index = False)
+
+    dataframe = pd.read_csv("super_params_scores.csv")
+    dataframe = dataframe.sort_values(by="per_corr", ascending=False)
+    dataframe.to_csv("super_params_scores_sort.csv", index = False)

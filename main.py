@@ -594,12 +594,24 @@ def expand_data(data, row_ta):
 
     data.ta.log_return(cumulative=True, append=True)
     data.ta.percent_return(cumulative=True, append=True)
+    data.ta.obv(cumulative=True, append=True)
+    data.ta.psar(cumulative=True, append=True)
+
+
+
 
 
     expand_int_array(data, row_ta, 'sma', data.ta.sma)
     expand_int_array(data, row_ta, 'ema', data.ta.ema)
     expand_int_array(data, row_ta, 'rsi', data.ta.rsi)
     expand_int_array(data, row_ta, 'kdj', data.ta.kdj)
+
+    expand_int_array(data, row_ta, 'bias', data.ta.bias)
+    expand_int_array(data, row_ta, 'adx', data.ta.adx)
+    expand_int_array(data, row_ta, 'cmo', data.ta.cmo)
+    expand_int_array(data, row_ta, 'cci', data.ta.cci)
+    expand_int_array(data, row_ta, 'trix', data.ta.trix)
+
 
     #macd_v = int()
     if not row_ta['macd']==0 and not row_ta['macd']=='0':
@@ -609,6 +621,7 @@ def expand_data(data, row_ta):
         data.ta.macd(fast=fast, slow=slow, append=True, fillna=0)
 
     data = data.fillna(0)
+    data = data.replace(np.inf, -1)
 
     macroFeature.features_x = list(data.columns.values)
 
@@ -635,12 +648,14 @@ def run_stock(id_stock, dic_super_params, dic_super_ta_params):
         row = dic_super_params[index_sp]
         if not row:
             continue
-        print("start run {0}".format(index_sp))
+        print("start run sp {0}".format(index_sp))
 
         for index_sp_ta in index_list_super_ta_params:
             row_ta = dic_super_ta_params[index_sp_ta]
             if not row_ta:
                 continue
+
+            print("start run sp_ta {0}".format(index_sp_ta))
             macro.window_size        = int(row['window_size'])
             macro.hidden_vector_size = int(row['hidden_vector_size'])
             print("hidden_vector_size {0}".format(macro.hidden_vector_size))

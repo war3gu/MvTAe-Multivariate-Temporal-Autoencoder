@@ -56,7 +56,7 @@ class macro():
 
 index_list_super_params = [1,2,3,4,5,6,7,8]
 
-index_list_super_ta_params = [1,2,3,4,5,6,7,8]
+index_list_super_ta_params = [6,7,8,9,10,11]
 
 
 FIELD_DATE = 'trade_date'
@@ -68,7 +68,7 @@ features_stock_1 = ['open','high','low','close','vol']
 features_day = ['open','high','low','close','vol','amount']
 
 class macroFeature:
-    features_x_norm = ['open','high','low','close', 'amount', 'volume']
+    features_x_norm = ['open','high','low','close', 'amount', 'volume', 'OBV']
     features_x = ['open', 'high', 'low', 'close', 'amount', 'volume']
               #'CUMLOGRET_1',  'CUMPCTRET_1', 'EMA_60', 'SMA_60',
               #'MACD_12_26_9', 'MACDh_12_26_9', 'RSI_60',
