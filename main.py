@@ -464,7 +464,7 @@ def run_super_params_minute(isFive, row_ta):
     list_x = []
     list_y = []
 
-    raw_data_size = 1000
+    #raw_data_size = 1000
 
     while index_window_end < raw_data_size:                    #此处分析没有因为隔天把数据截断
         data_x_temp = data[index_window_start:index_window_end]
@@ -717,7 +717,7 @@ if __name__ == '__main__':
 
     
 
-    print("0000000000000000000000000")
+    print("333333")
     
     run_stock("600507.sh", dic_super_params, dic_super_ta_params)
     #run_stock("000002.sz", dic_super_params, dic_super_ta_params)

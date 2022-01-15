@@ -54,9 +54,9 @@ class macro():
     log_price   = True            #                       可配置      属性是否使用对数
 
 
-index_list_super_params = [15,16]  #14,15,16轮流试试  #13的window_size为1，必须抛弃，而且window_size可以肯定不是最好的window_size，信息量明显不够
+index_list_super_params = [1,2,3,4,5,6,7,8]
 
-index_list_super_ta_params = [1,2]
+index_list_super_ta_params = [1,2,3,4,5,6,7,8]
 
 
 FIELD_DATE = 'trade_date'
