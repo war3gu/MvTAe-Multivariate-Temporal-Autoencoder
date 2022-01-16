@@ -32,6 +32,8 @@ import os
 
 import pandas_ta as ta
 
+from expand_ta import *
+
 print(torch.__version__)
 print(torch.cuda.is_available())
 
@@ -573,74 +575,9 @@ def run_super_params_minute(isFive, row_ta):
         mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr = alpha_test_scores(model, test_arr_x, test_arr_y, test_arr_window)
         return mse, mae, r2, dev_per_mean, dev_per_std, per_pp, per_nn, per_corr, best_epoch, best_loss
 
-def expand_int_array(data, row_ta, attri, func):
-    if not row_ta[attri]==0 and not row_ta[attri]=='0':
-        arr = str(row_ta[attri]).split(';')
-        for vvv in arr:
-            vvv = int(vvv)
-            func(length=vvv, append=True, fillna=0)
-
-
-def expand_data(data, row_ta):
-    #data.set_index(pd.DatetimeIndex(data["Index"]), inplace=True)
-    # Calculate Returns and append to the df DataFrame
-    data = data.rename(columns={1: "open", 2: "high", 3: "low", 4: "close", 5: "amount", 6: "volume"})
-
-    if 7 in data.columns:
-        data = data.drop([7], axis=1)
-
-    #for i in features_x:
-        #print(i)
-
-    data.ta.log_return(cumulative=True, append=True)
-    data.ta.percent_return(cumulative=True, append=True)
-    data.ta.obv(cumulative=True, append=True)
-    data.ta.psar(cumulative=True, append=True)
 
 
 
-
-
-    expand_int_array(data, row_ta, 'sma', data.ta.sma)
-    expand_int_array(data, row_ta, 'ema', data.ta.ema)
-    expand_int_array(data, row_ta, 'rsi', data.ta.rsi)
-    expand_int_array(data, row_ta, 'kdj', data.ta.kdj)
-
-    expand_int_array(data, row_ta, 'bias', data.ta.bias)
-    expand_int_array(data, row_ta, 'adx', data.ta.adx)
-    expand_int_array(data, row_ta, 'cmo', data.ta.cmo)
-    expand_int_array(data, row_ta, 'cci', data.ta.cci)
-    expand_int_array(data, row_ta, 'trix', data.ta.trix)
-
-
-    #macd_v = int()
-    if not row_ta['macd']==0 and not row_ta['macd']=='0':
-        macd_array = str(row_ta['macd']).split(':')
-        fast = int(macd_array[0])
-        slow = int(macd_array[1])
-        data.ta.macd(fast=fast, slow=slow, append=True, fillna=0)
-
-    data = data.fillna(0)
-    data = data.replace(np.inf, -1)
-
-    macroFeature.features_x = list(data.columns.values)
-
-    print("features_x  {0}".format(macroFeature.features_x))
-
-    # New Columns with results
-    #data.columns
-    # Take a peek
-    #data.tail()
-
-    # Create a DataFrame so 'ta' can be used.
-    df = pd.DataFrame()
-    # Help about this, 'ta', extension
-    #help(df.ta)
-    # List of all indicators
-    #df.ta.indicators()
-
-
-    return data
 
 
 def run_stock(id_stock, dic_super_params, dic_super_ta_params):

@@ -54,9 +54,9 @@ class macro():
     log_price   = True            #                       可配置      属性是否使用对数
 
 
-index_list_super_params = [1,2,3,4,5,6,7,8]
+index_list_super_params = [2,3]
 
-index_list_super_ta_params = [6,7,8,9,10,11]
+index_list_super_ta_params = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 
 
 FIELD_DATE = 'trade_date'
@@ -68,7 +68,7 @@ features_stock_1 = ['open','high','low','close','vol']
 features_day = ['open','high','low','close','vol','amount']
 
 class macroFeature:
-    features_x_norm = ['open','high','low','close', 'amount', 'volume', 'OBV']
+    #features_x_norm = ['open','high','low','close', 'amount', 'volume', 'AD', 'ADOSC_3_10']
     features_x = ['open', 'high', 'low', 'close', 'amount', 'volume']
               #'CUMLOGRET_1',  'CUMPCTRET_1', 'EMA_60', 'SMA_60',
               #'MACD_12_26_9', 'MACDh_12_26_9', 'RSI_60',
