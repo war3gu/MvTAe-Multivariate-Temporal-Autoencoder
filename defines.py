@@ -54,9 +54,9 @@ class macro():
     log_price   = True            #                       可配置      属性是否使用对数
 
 
-index_list_super_params = [2,3]
+index_list_super_params = [3]
 
-index_list_super_ta_params = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+index_list_super_ta_params = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
 
 
 FIELD_DATE = 'trade_date'
