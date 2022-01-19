@@ -79,3 +79,7 @@ rsi kdj  adx 指标效果不错
 rsi kdj指标居然不能norm，否则test数据会从70%掉到65%
 
 dpo居然可以把准确率干到89%
+
+dpo 大概率是拥有close信息，无论如何调整split_ratio，test准确率始终是99%,rsi,kdj也有同样的问题
+
+把split_ratio搞成可配置

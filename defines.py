@@ -7,6 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch import nn, from_numpy
 
 import random
+from defines_ta_id import *
 
 ID_SEED = 42
 
@@ -57,7 +58,7 @@ class macro():
 index_list_super_params = [3]
 
 #39,7
-index_list_super_ta_params =[39, 62, 99]
+index_list_super_ta_params =[TAID_NONE]
 
 
 FIELD_DATE = 'trade_date'
