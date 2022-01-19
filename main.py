@@ -669,7 +669,7 @@ if __name__ == '__main__':
 
     
 
-    print("333333")
+    print("444444")
     
     run_stock("600507.sh", dic_super_params, dic_super_ta_params)
     #run_stock("000002.sz", dic_super_params, dic_super_ta_params)

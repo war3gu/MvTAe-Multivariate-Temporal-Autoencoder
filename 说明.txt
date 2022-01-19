@@ -74,4 +74,8 @@ test模型的正确率不超过一半是无法容忍的
 
 'amount', 'volume' 数值特别大，不归一化无法进行训练
 
-rsi kdj  adx  指标效果不错
+rsi kdj  adx 指标效果不错
+
+rsi kdj指标居然不能norm，否则test数据会从70%掉到65%
+
+dpo居然可以把准确率干到89%
