@@ -57,7 +57,7 @@ class macro():
 index_list_super_params = [3]
 
 #39,7
-index_list_super_ta_params =[62, 99]
+index_list_super_ta_params =[39, 62, 99]
 
 
 FIELD_DATE = 'trade_date'

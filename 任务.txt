@@ -94,4 +94,4 @@ train数据跑出来为1的模型肯定不好，因为股票数据明显有很�
 
 把ta的索引用变量表示
 
-实现一个函数，往super_ta_params里写内容
+实现一个函数，往super_ta_params里写内容,sagemaker上改起来可能会出问题

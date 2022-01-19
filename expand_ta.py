@@ -20,7 +20,7 @@ def expand_length_array(data, row_ta, attri, func, fillna=0):
         if not row_ta[attri]==0 and not row_ta[attri]=='0':
             arr = str(row_ta[attri]).split(';')
             #arr = [5,10,15,20,25,30,40,45,50,60,80,90,100,120]   #临时方案
-            arr = [5,10,15,30,60,120,180]
+            #arr = [5,10,15,30,40,60,120,180]
             for vvv in arr:
                 vvv = int(vvv)
                 func(length=vvv, append=True, fillna=fillna)
