@@ -322,7 +322,7 @@ def run_super_params():
         index_window_end = index_window_start + macro.window_size
 
     count_window = len(list_x)
-    count_train = int(np.ceil(count_window * split_ratio))
+    count_train = int(np.ceil(count_window * macro.split_ratio))
     #print("train count")
     #print(count_train)
     count_test = count_window - count_train
@@ -466,7 +466,8 @@ def run_super_params_minute(isFive, row_ta):
     list_x = []
     list_y = []
 
-    #raw_data_size = 1000
+    if macro.data_size != 0:
+        raw_data_size = macro.data_size
 
     while index_window_end < raw_data_size:                    #此处分析没有因为隔天把数据截断
         data_x_temp = data[index_window_start:index_window_end]
@@ -488,7 +489,7 @@ def run_super_params_minute(isFive, row_ta):
         index_window_end = index_window_start + macro.window_size
 
     count_window = len(list_x)
-    count_train = int(np.ceil(count_window * split_ratio))
+    count_train = int(np.ceil(count_window * macro.split_ratio))
     #print("train count")
     #print(count_train)
     count_test = count_window - count_train
@@ -604,7 +605,10 @@ def run_stock(id_stock, dic_super_params, dic_super_ta_params):
             macro.dropout_p          = row['dropout_p']
             macro.lr                 = row['lr']
             macro.weight_decay       = row['weight_decay']
-            macro.log_price          = int(row['log_price'])
+            macro.split_ratio        = float(row['split_ratio'])
+            macro.data_size          = int(row['data_size'])
+
+
             macro.id_stock           = id_stock                              #不同的股票可以设置不同的超参数，自由组合(暂时先这样跑)
 
 

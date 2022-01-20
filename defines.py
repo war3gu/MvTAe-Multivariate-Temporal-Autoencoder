@@ -28,7 +28,6 @@ features_x = ['sine_1', 'sine_2', 'noise']
 feature_y = 'combined'
 
 step_size = 1                 #窗口移动的步长
-split_ratio = 0.8             #窗口分割比例
 float_precision_bits = 32
 bits_in_MB = 8e6
 
@@ -52,7 +51,8 @@ class macro():
     lr          = 0.0001          #                       可配置
     weight_decay= 0.8             #                       可配置
     id_stock    = '600196.sh'     #                       可配置
-    log_price   = True            #                       可配置      属性是否使用对数
+    split_ratio = 0.9             #                       可配置
+    data_size   = 0               #使用的窗口数据的大小       可配置
 
 
 index_list_super_params = [3]

@@ -100,8 +100,7 @@ class Data(Dataset):
     def __len__(self):
         return len(self.x)
 
-if __name__ == '__main__':
-    print("haha")
+def sort_score():
     if not os.path.exists("super_params_scores_sort.csv"):
         df = pd.DataFrame(columns=['id_stock', 'index_sp', 'index_sp_ta', 'mse', 'mae', 'r2', 'dev_per_mean', 'dev_per_std', 'per_pp', 'per_nn', 'per_corr', 'epochs', 'epoch_best', 'epoch_best_loss'])   #还需要记录预测与现实的关系
         df.to_csv("super_params_scores_sort.csv", index = False)
@@ -109,3 +108,15 @@ if __name__ == '__main__':
     dataframe = pd.read_csv("super_params_scores.csv")
     dataframe = dataframe.sort_values(by="per_corr", ascending=False)
     dataframe.to_csv("super_params_scores_sort.csv", index = False)
+
+#修改技术参数，因为sagemaker修改起来比较麻烦
+def change_super_ta_params(index, attri, str):
+    #df = pd.read_csv('super_ta_params.csv', index_col = 'index', header=0)
+    df = pd.read_csv('super_ta_params.csv', header=0)
+    df[attri][df['index'] ==index] = str
+    df.to_csv("super_ta_params.csv", index = False)
+
+if __name__ == '__main__':
+    print("haha")
+    #sort_score()
+    change_super_ta_params(TAID_NONE, 'aberration', '50')
