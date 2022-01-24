@@ -465,6 +465,7 @@ def run_super_params_minute(isFive, row_ta):
     list_window = []
     list_x = []
     list_y = []
+    list_xyw = []
 
     if macro.data_size != 0:
         raw_data_size = macro.data_size
@@ -482,11 +483,27 @@ def run_super_params_minute(isFive, row_ta):
         else:
             ret_x_arr, ret_y_arr = oneWin.get_norm_data_array()
 
-        list_x.append(ret_x_arr)
-        list_y.append(ret_y_arr)
-        list_window.append(oneWin)
+        #list_x.append(ret_x_arr)
+        #list_y.append(ret_y_arr)
+        #list_window.append(oneWin)
+
+        xywDic = {}
+        xywDic['x'] = ret_x_arr
+        xywDic['y'] = ret_y_arr
+        xywDic['window'] = oneWin
+        list_xyw.append(xywDic)
+
+
         index_window_start = index_window_start + step_size
         index_window_end = index_window_start + macro.window_size
+
+
+    random.shuffle(list_xyw)                   #乱序，增加难度
+
+    for xywDic in list_xyw:
+        list_x.append(xywDic['x'])
+        list_y.append(xywDic['y'])
+        list_window.append(xywDic['window'])
 
     count_window = len(list_x)
     count_train = int(np.ceil(count_window * macro.split_ratio))
